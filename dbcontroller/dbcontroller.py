@@ -39,31 +39,45 @@ class DataBaseController:
 
     def init(self):
         try:
-            cmd = "CREATE TABLE IF NOT EXISTS subscribers (" \
-                  "     id INTEGER PRIMARY KEY," \
-                  "     tg_id INT NOT NULL UNIQUE," \
-                  "     username CHAR NOT NULL," \
-                  "     creation_datetime DATETIME," \
-                  "     status INT NOT NULL," \
-                  "     sub_days INT" \
+            cmd = "CREATE TABLE IF NOT EXISTS user_accounts (" \
+                  "     id INT PRIMARY KEY AUTOINCREMENT," \
+                  "     mail TEXT NOT NULL UNIQUE," \
+                  "     password TEXT NOT NULL," \
+                  "     contract_number INT NOT NULL UNIQUE," \
+                  "     order_id INT," \
                   ");"
             self.__execute_cmd(cmd)
 
-            cmd = "CREATE TABLE IF NOT EXISTS owners (" \
-                  "     id INTEGER PRIMARY KEY," \
-                  "     tg_id INT NOT NULL UNIQUE," \
-                  "     username CHAR NOT NULL" \
+            cmd = "CREATE TABLE IF NOT EXISTS orders (" \
+                  "     id INT PRIMARY KEY AUTOINCREMENT," \
+                  "     name TEXT," \
+                  "     info TEXT," \
                   ");"
             self.__execute_cmd(cmd)
 
-            # TODO: sub_id
-            # TODO: или понять что это за дракон https://surik00.gitbooks.io/aiogram-lessons/content/chapter4.html
-            cmd = "CREATE TABLE IF NOT EXISTS transactions (" \
-                  "     id INTEGER PRIMARY KEY," \
-                  "     sub_id CHAR NOT NULL, " \
-                  "     amount INT NOT NULL," \
-                  "     status INT NOT NULL," \
-                  "     date DATETIME" \
+            cmd = "CREATE TABLE IF NOT EXISTS tg_users (" \
+                  "     id INT PRIMARY KEY AUTOINCREMENT," \
+                  "     tg_id INT UNIQUE," \
+                  "     tg_username TEXT," \
+                  "     account_id  INT," \
+                  "     manager_id  INT" \
+                  ");"
+            self.__execute_cmd(cmd)
+            cmd = "CREATE TABLE IF NOT EXISTS managers (" \
+                  "     id INT PRIMARY KEY AUTOINCREMENT," \
+                  "     tg_id INT UNIQUE," \
+                  "     tg_username TEXT," \
+                  "     password TEXT NOT NULL" \
+                  ");"
+            self.__execute_cmd(cmd)
+
+            cmd = "CREATE TABLE IF NOT EXISTS pretension (" \
+                  "     id INT PRIMARY KEY AUTOINCREMENT," \
+                  "     user_id INT UNIQUE," \
+                  "     status TEXT," \
+                  "     type INT," \
+                  "     message INT," \
+                  "     creation_datetime DATETIME" \
                   ");"
             self.__execute_cmd(cmd)
 
