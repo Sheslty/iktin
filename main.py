@@ -2,7 +2,7 @@ import asyncio
 import logging
 
 from aiogram import Bot, Dispatcher
-
+import yaml
 from aiogram.fsm.storage.memory import MemoryStorage
 # from bot.middlewares import StartMessageMiddleware, OwnerMessageMiddleware, SubscriberMessageMiddleware
 # from bot.handlers import owner_handler, start_handler, sub_handler
@@ -19,29 +19,17 @@ def parse_config(file):
     with open(file, 'r') as config_file:
         data = yaml.safe_load(config_file)
 
-    tg_token = data["token"]
-    config = SessionData(
-        session_username=data["session_username"],
-        api_hash=data["api_hash"],
-        api_id=data["api_id"]
-    )
-    payments_provider_token = data['payments_provider_token']
-
-    return config, tg_token, payments_provider_token
-
 
 async def main():
     try:
-        session_data, token, payments_provider_token = parse_config(DEFAULT_CONFIG)
+        config_data = parse_config(DEFAULT_CONFIG)
 
         db.init()
 
         bot = Bot(token=token)
 
-        dispatcher.include_routers(owner_handler.router, start_handler.router, sub_handler.router)
-
-        scheduler = Scheduler(bot, session_data)
-        scheduler.start_polling()
+        dispatcher = Dispatcher()
+        dispatcher.include_routers()
 
         await dispatcher.start_polling(bot)
         await bot.session.close()
