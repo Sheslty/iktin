@@ -5,7 +5,7 @@ from aiogram import Bot, Dispatcher
 import yaml
 from aiogram.fsm.storage.memory import MemoryStorage
 # from bot.middlewares import StartMessageMiddleware, OwnerMessageMiddleware, SubscriberMessageMiddleware
-# from bot.handlers import owner_handler, start_handler, sub_handler
+from bot.handlers import start_hanlers, users_handlers, managers_handlers
 from dbcontroller.dbcontroller import DataBaseController
 
 DEFAULT_CONFIG = "config.yaml"
@@ -19,6 +19,8 @@ def parse_config(file):
     with open(file, 'r') as config_file:
         data = yaml.safe_load(config_file)
 
+    return data
+
 
 async def main():
     try:
@@ -26,13 +28,14 @@ async def main():
 
         db.init()
 
-        bot = Bot(token=token)
+        bot = Bot(token=config_data['token'])
 
         dispatcher = Dispatcher()
-        dispatcher.include_routers()
+        dispatcher.include_routers(start_hanlers.router)
 
         await dispatcher.start_polling(bot)
-        await bot.session.close()
+
+        # await bot.session.close()
 
     except Exception as ex:
         logging.exception(ex)
