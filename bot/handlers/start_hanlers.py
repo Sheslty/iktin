@@ -3,7 +3,6 @@ import logging
 from aiogram import Router, F
 from aiogram.filters import Command
 from aiogram.types import Message, KeyboardButton, ReplyKeyboardMarkup
-from bot.handlers.routers_helper import refresh_all_users
 from aiogram.fsm.context import FSMContext
 
 import main
@@ -17,7 +16,7 @@ router = Router()
 async def cmd_start(message: Message, state: FSMContext):
     logging.info(f'User {message.from_user.username}:{message.from_user.id} start / restart chat')
     default_buttons = [
-        [BotButtons.AUTHORISE_AS_USER, BotButtons.AUTHORISE_AS_MAANGER]
+        [BotButtons.AUTHORISE_AS_USER, BotButtons.AUTHORISE_AS_MANAGER]
     ]
     kb = default_buttons
 
@@ -25,10 +24,10 @@ async def cmd_start(message: Message, state: FSMContext):
     users_ids =
     if (message.from_user.id,) in users_ids:
         sub_buttons = [
-            [KeyboardButton(text=BotButtons.DAYS_TO_EXPIRE), KeyboardButton(text=BotButtons.RENEW_SUBSCRIPTION)]
+            [BotButtons.CONSIGNMENT_CREATE, BotButtons.CARGO_TRACKING]
         ]
         kb.extend(sub_buttons)
-    #
+
     # # TODO: сделать метод получения id менеджеров из db в dbcontroller'e и вызвать тут
     # managers_ids =
     # if (message.from_user.id,) in managers_ids:
@@ -53,7 +52,7 @@ async def process_user_authorise(message: Message, state: FSMContext):
     pass
 
 
-# TODO:
+# TODO: спросить у пользователя логин пароль от менеджер-аккаунта
 @router.message(Command("start"))
 async def process_manager_authorise(message: Message, state: FSMContext):
     pass

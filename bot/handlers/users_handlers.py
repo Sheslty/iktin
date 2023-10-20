@@ -12,6 +12,13 @@ import dbcontroller.dbcontroller
 router = Router()
 
 
-@router.message(F.text == BotButtons.AUTHORISE_AS_USER)
-async def sub_add(message: Message, state: FSMContext):
-    await message.reply(f"Введите username пользователя в телеграм для добавления в подписчики.")
+# TODO: спросить у пользователя все данные про
+@router.message(F.text == BotButtons.CONSIGNMENT_CREATE)
+async def process_consignment_create(message: Message, state: FSMContext):
+    await message.reply(f"")
+
+
+# TODO: отслеживание заказа
+@router.message(F.text == BotButtons.CONSIGNMENT_CREATE)
+async def process_cargo_tracking(message: Message, state: FSMContext):
+    await message.reply(f"")
