@@ -1,7 +1,7 @@
 import sqlite3
 import logging
 
-DEFAULT_DB_FILE = 'dolphin-subscribers.db'
+DEFAULT_DB_FILE = 'dbfile.db'
 
 
 class DataBaseController:

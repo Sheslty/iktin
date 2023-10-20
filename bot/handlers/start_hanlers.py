@@ -15,31 +15,28 @@ router = Router()
 @router.message(Command("start"))
 async def cmd_start(message: Message, state: FSMContext):
     logging.info(f'User {message.from_user.username}:{message.from_user.id} start / restart chat')
-    default_buttons = [
-        [BotButtons.AUTHORISE_AS_USER, BotButtons.AUTHORISE_AS_MANAGER]
-    ]
-    kb = default_buttons
+    keyboard = [[BotButtons.AUTHORISE_AS_USER, BotButtons.AUTHORISE_AS_MANAGER]]
 
     # # TODO: сделать метод получения id пользователей из db в dbcontroller'e и вызвать тут
     users_ids =
     if (message.from_user.id,) in users_ids:
-        sub_buttons = [
+        user_buttons = [
             [BotButtons.CONSIGNMENT_CREATE, BotButtons.CARGO_TRACKING]
         ]
-        kb.extend(sub_buttons)
+        keyboard.extend(user_buttons)
 
-    # # TODO: сделать метод получения id менеджеров из db в dbcontroller'e и вызвать тут
-    # managers_ids =
-    # if (message.from_user.id,) in managers_ids:
-    #     user_data = await state.get_data()
-    #     await refresh_all_users(main.db, user_data['session_data'])
-    #     manager_ = [
-    #
-    #     ]
-    #     kb.extend(manager_)
+    # TODO: сделать метод получения id менеджеров из db в dbcontroller'e и вызвать тут
+    managers_ids =
+    if (message.from_user.id,) in managers_ids:
+        user_data = await state.get_data()
+        await refresh_all_users(main.db, user_data['session_data'])
+        manager_buttons = [
+
+        ]
+        keyboard.extend(manager_buttons)
 
     keyboard = ReplyKeyboardMarkup(
-        keyboard=kb,
+        keyboard=keyboard,
         resize_keyboard=True,
         input_field_placeholder='Выберите действие.'
     )
