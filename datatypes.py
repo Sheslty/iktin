@@ -8,6 +8,12 @@ class SessionData:
     api_id: int
 
 
+class PretensionStatus:
+    WAIT = 'wait'
+    PROCESSING = 'processing'
+    CLOSED = 'closed'
+
+
 @dataclass
 class Item:
     width: int

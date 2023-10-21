@@ -26,7 +26,7 @@ async def cmd_start(message: Message):
     if message.from_user.id in existing_users_ids:
         user_buttons = [
             [
-                KeyboardButton(text=BotButtons.CONSIGNMENT_CREATE),
+                KeyboardButton(text=BotButtons.PRETENSION_CREATE),
                 KeyboardButton(text=BotButtons.CARGO_TRACKING),
                 KeyboardButton(text=BotButtons.CREATE_INVOICE)
             ]

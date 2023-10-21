@@ -71,7 +71,7 @@ class TgUserAccount(Model):
 class TgPretension(Model):
     user_id = ForeignKeyField(TgUserAccount, null=False, on_delete='CASCADE')
     status = CharField(null=False)
-    _type = IntegerField(null=False)
+    _type = CharField(null=False)
     message = CharField()
     creation_datetime = DateTimeField(default=datetime.now)
 
