@@ -5,7 +5,7 @@ from aiogram.types import Message
 from aiogram.filters.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
 
-from bot.massages import BotButtons
+from bot.messages import BotButtons
 
 import dbcontroller.dbcontroller
 

@@ -4,7 +4,7 @@ import logging
 from aiogram import Bot, Dispatcher
 import yaml
 from aiogram.fsm.storage.memory import MemoryStorage
-# from bot.middlewares import StartMessageMiddleware
+from bot.middlewares import UserMessageMiddleware, ManagerMessageMiddleware
 from bot.handlers import start_handlers, users_handlers, managers_handlers
 
 from datatypes import SessionData
@@ -38,6 +38,12 @@ async def main():
 
         # start_middleware = StartMessageMiddleware(session_data)
         # start_hanlers.router.message.middleware(start_middleware)
+
+        # user_middleware = UserMessageMiddleware()
+        # users_handlers.router.message.middleware(user_middleware)
+        #
+        # sub_middleware = ManagerMessageMiddleware()
+        # managers_handlers.router.message.middleware(sub_middleware)
 
         storage = MemoryStorage()
         dispatcher = Dispatcher(storage=storage)

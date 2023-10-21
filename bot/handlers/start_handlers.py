@@ -8,7 +8,7 @@ from aiogram.filters.state import State, StatesGroup
 from bot.handlers.routers_helper import get_user_id
 
 import main
-from bot.massages import BotButtons
+from bot.messages import BotButtons
 
 router = Router()
 
