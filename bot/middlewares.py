@@ -8,17 +8,20 @@ from messages import BotMessages
 
 
 def _is_manager(owner_id):
-    with dbcontroller.DataBaseController() as db:
-        if (owner_id,) in db.get_owner_ids():
-            return True
-        return False
+    return True
+
+    # with dbcontroller.DataBaseController() as db:
+    #     if (owner_id,) in db.get_owner_ids():
+    #         return True
+    #     return False
 
 
 def _is_user(sub_id):
-    with dbcontroller.DataBaseController() as db:
-        if (sub_id,) in db.get_sub_ids():
-            return True
-        return False
+    return True
+    # with dbcontroller.DataBaseController() as db:
+    #     if (sub_id,) in db.get_sub_ids():
+    #         return True
+    #     return False
 
 
 # class StartMessageMiddleware(BaseMiddleware):

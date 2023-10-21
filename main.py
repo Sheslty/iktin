@@ -5,7 +5,7 @@ from aiogram import Bot, Dispatcher
 import yaml
 from aiogram.fsm.storage.memory import MemoryStorage
 from bot.middlewares import UserMessageMiddleware, ManagerMessageMiddleware
-from bot.handlers import start_handlers, users_handlers, managers_handlers
+from bot.handlers import start, users, managers
 
 from datatypes import SessionData
 from dbcontroller.dbcontroller import DataBaseController
@@ -37,7 +37,7 @@ async def main():
                                    api_id=config_data['api_id'])
 
         # start_middleware = StartMessageMiddleware(session_data)
-        # start_hanlers.router.message.middleware(start_middleware)
+        # start_handlers.router.message.middleware(start_middleware)
 
         # user_middleware = UserMessageMiddleware()
         # users_handlers.router.message.middleware(user_middleware)
@@ -47,7 +47,7 @@ async def main():
 
         storage = MemoryStorage()
         dispatcher = Dispatcher(storage=storage)
-        dispatcher.include_routers(start_hanlers.router)
+        dispatcher.include_routers(start.router, users.router, managers.router)
 
         await dispatcher.start_polling(bot)
 
