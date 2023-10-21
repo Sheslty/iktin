@@ -14,7 +14,7 @@ class DataBaseController:
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.conn.close()
 
-    def __execute_cmd(self, cmd):
+    def __execute_sql(self, cmd):
         try:
             logging.debug(f'Execute CMD: {cmd}')
             cursor = self.conn.cursor()
@@ -28,9 +28,9 @@ class DataBaseController:
             logging.error(f'Exception while executing cmd {cmd}: {ex}')
             raise
 
-    def __execute_and_commit_cmd(self, cmd):
+    def __execute_and_commit_sql(self, cmd):
         try:
-            self.__execute_cmd(cmd)
+            self.__execute_sql(cmd)
             self.conn.commit()
         except Exception as ex:
             logging.error(f'Exception while commit cmd {cmd}: {ex}')
@@ -40,49 +40,56 @@ class DataBaseController:
     def init(self):
         try:
             cmd = "CREATE TABLE IF NOT EXISTS user_accounts (" \
-                  "     id INT PRIMARY KEY AUTOINCREMENT," \
-                  "     mail TEXT NOT NULL UNIQUE," \
-                  "     password TEXT NOT NULL," \
+                  "     id INT NOT NULL PRIMARY KEY," \
+                  "     mail CHAR NOT NULL UNIQUE," \
+                  "     password CHAR NOT NULL," \
                   "     contract_number INT NOT NULL UNIQUE," \
-                  "     order_id INT," \
+                  "     order_id INT" \
                   ");"
-            self.__execute_cmd(cmd)
+            self.__execute_sql(cmd)
 
             cmd = "CREATE TABLE IF NOT EXISTS orders (" \
-                  "     id INT PRIMARY KEY AUTOINCREMENT," \
-                  "     name TEXT," \
-                  "     info TEXT," \
+                  "     id INT NOT NULL PRIMARY KEY," \
+                  "     name CHAR," \
+                  "     info CHAR" \
                   ");"
-            self.__execute_cmd(cmd)
+            self.__execute_sql(cmd)
 
             cmd = "CREATE TABLE IF NOT EXISTS tg_users (" \
-                  "     id INT PRIMARY KEY AUTOINCREMENT," \
-                  "     tg_id INT UNIQUE," \
-                  "     tg_username TEXT," \
-                  "     account_id  INT," \
-                  "     manager_id  INT" \
+                  "     id INT NOT NULL PRIMARY KEY," \
+                  "     tg_id INT NOT NULL UNIQUE," \
+                  "     tg_username CHAR," \
+                  "     account_id INT," \
+                  "     manager_id INT" \
                   ");"
-            self.__execute_cmd(cmd)
+            self.__execute_sql(cmd)
+
             cmd = "CREATE TABLE IF NOT EXISTS managers (" \
-                  "     id INT PRIMARY KEY AUTOINCREMENT," \
+                  "     id INT NOT NULL PRIMARY KEY," \
                   "     tg_id INT UNIQUE," \
-                  "     tg_username TEXT," \
-                  "     password TEXT NOT NULL" \
+                  "     tg_username CHAR," \
+                  "     password CHAR NOT NULL" \
                   ");"
-            self.__execute_cmd(cmd)
+            self.__execute_sql(cmd)
 
             cmd = "CREATE TABLE IF NOT EXISTS pretension (" \
-                  "     id INT PRIMARY KEY AUTOINCREMENT," \
+                  "     id INT NOT NULL PRIMARY KEY," \
                   "     user_id INT UNIQUE," \
-                  "     status TEXT," \
+                  "     status CHAR," \
                   "     type INT," \
                   "     message INT," \
                   "     creation_datetime DATETIME" \
                   ");"
-            self.__execute_cmd(cmd)
+            self.__execute_sql(cmd)
 
             self.conn.commit()
 
         except Exception as ex:
             logging.exception(f'Database init error {ex}')
             self.conn.rollback()
+
+    def get_users_ids(self):
+        return ()
+
+    def get_managers_ids(self):
+        return ()

@@ -6,32 +6,31 @@ from aiogram.types import Message, KeyboardButton, ReplyKeyboardMarkup
 from aiogram.fsm.context import FSMContext
 
 import main
-
 from bot.massages import BotButtons
 
 router = Router()
 
 
 @router.message(Command("start"))
-async def cmd_start(message: Message, state: FSMContext):
+async def cmd_start(message: Message):
     logging.info(f'User {message.from_user.username}:{message.from_user.id} start / restart chat')
-    keyboard = [[BotButtons.AUTHORISE_AS_USER, BotButtons.AUTHORISE_AS_MANAGER]]
+    keyboard = [
+        [KeyboardButton(text=BotButtons.AUTHORISE_AS_USER), KeyboardButton(text=BotButtons.AUTHORISE_AS_MANAGER)]
+    ]
 
-    # # TODO: сделать метод получения id пользователей из db в dbcontroller'e и вызвать тут
-    users_ids =
+    # TODO: сделать метод получения id пользователей из db в dbcontroller'e и вызвать тут
+    users_ids = main.db.get_users_ids()
     if (message.from_user.id,) in users_ids:
         user_buttons = [
-            [BotButtons.CONSIGNMENT_CREATE, BotButtons.CARGO_TRACKING]
+            [KeyboardButton(text=BotButtons.CONSIGNMENT_CREATE), KeyboardButton(text=BotButtons.CARGO_TRACKING)]
         ]
         keyboard.extend(user_buttons)
 
     # TODO: сделать метод получения id менеджеров из db в dbcontroller'e и вызвать тут
-    managers_ids =
+    managers_ids = main.db.get_managers_ids()
     if (message.from_user.id,) in managers_ids:
-        user_data = await state.get_data()
-        await refresh_all_users(main.db, user_data['session_data'])
         manager_buttons = [
-
+            [KeyboardButton(text=BotButtons.GET_LINKED_USERS)]
         ]
         keyboard.extend(manager_buttons)
 
@@ -45,12 +44,12 @@ async def cmd_start(message: Message, state: FSMContext):
 
 # TODO: спросить у пользователя номер договора и пароль и добавить его таблицу
 @router.message(F.text == BotButtons.AUTHORISE_AS_USER)
-async def process_user_authorise(message: Message, state: FSMContext):
-    pass
+async def process_user_authorise(message: Message):
+    await message.answer("NULL")
 
 
 # TODO: спросить у пользователя логин пароль от менеджер-аккаунта
-@router.message(Command("start"))
-async def process_manager_authorise(message: Message, state: FSMContext):
-    pass
+@router.message(F.text == BotButtons.AUTHORISE_AS_MANAGER)
+async def process_manager_authorise(message: Message):
+    await message.answer("NULL")
 
