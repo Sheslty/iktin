@@ -10,7 +10,8 @@ class BotButtons:
     AUTHORISE_AS_USER = "Login as user"
     AUTHORISE_AS_MANAGER = "Login as manager"
 
-    CONSIGNMENT_CREATE = "Create consignment"
+    PRETENSION_CREATE = "Create pretension"
+
     CARGO_TRACKING = "Track cargo"
     CREATE_INVOICE = "Create invoice"
 

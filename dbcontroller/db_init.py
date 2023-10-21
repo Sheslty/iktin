@@ -19,10 +19,10 @@ if __name__ == "__main__":
     Order.create(name="Беспроводной пылесос Tefal X-Force Flex 9.60 Allergy TY2039WO", info="Мощный и сверхлёгкий Tefal X-Force Flex 9.60 перевернёт ваши представления об эффективной, быстрой и комфортной уборке. Благодаря высокой мощности всасывания пылесос устраняет самые стойкие загрязнения без перерыва на подзарядку в течение 45 минут, а уникальная система Flex гарантирует безупречный порядок под низкой мебелью и в труднодоступных местах.", user_id=1)
     Order.create(name="Таблетки для посудомоечной машины Fairy Platinum All in One", info="Экологичные капсулы Fairy Platinum All in One с лимоном обеспечивают защиту компонентов посудомоечной машины и удаляют сложные загрязнения с посуды с первого раза, сообщая посуде приятный цитрусовый аромат, а посудомойке — чистоту и свежесть.", user_id=2)
 
-    TgPretension.create(user_id=1, status='sended', _type=1, message='1', creation_datetime=datetime.now())
-    TgPretension.create(user_id=1, status='processing', _type=2, message='2', creation_datetime=datetime.now())
-    TgPretension.create(user_id=2, status='closed', _type=3, message='3', creation_datetime=datetime.now())
-    TgPretension.create(user_id=3, status='closed', _type=4, message='4', creation_datetime=datetime.now())
+    TgPretension.create(user_id=1, status='sended', _type='дверь-дверь', message='1', creation_datetime=datetime.now())
+    TgPretension.create(user_id=1, status='processing', _type='дверь-склад', message='я жду пылесос 2 года', creation_datetime=datetime.now())
+    TgPretension.create(user_id=2, status='closed', _type='склад-дверь', message='3', creation_datetime=datetime.now())
+    TgPretension.create(user_id=3, status='closed', _type='склад-склад', message='4', creation_datetime=datetime.now())
 
     TgManager.create(tg_id=1, tg_username='cxfs', password='qwe', manager_id=1)
     TgManager.create(tg_id=2, tg_username='rxs', password='qwe', manager_id=2)
