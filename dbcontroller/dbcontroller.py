@@ -1,6 +1,7 @@
 import sqlite3
 import logging
 
+from sql_actions import SQlActions
 DEFAULT_DB_FILE = 'dbfile.db'
 
 
@@ -95,3 +96,11 @@ class DataBaseController:
 
     def get_managers_ids(self):
         return ()
+
+    def create_accounts_link(self):
+        sql = SQlActions.GET_USER_ACCOUNTS_CREDS
+        return self.__execute_sql(sql)
+
+    def get_user_accounts_creds(self):
+        sql = SQlActions.GET_USER_ACCOUNTS_CREDS
+        return self.__execute_sql(sql)

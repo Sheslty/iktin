@@ -50,7 +50,6 @@ class UserAuthorisationForm(StatesGroup):
     waiting_for_password = State()
 
 
-# TODO: спросить у пользователя номер договора и пароль и добавить его таблицу
 @router.message(F.text == BotButtons.AUTHORISE_AS_USER)
 async def process_user_authorise(message: Message, state: FSMContext):
     await message.reply(f"Введите номер вашего контракта")
@@ -67,10 +66,21 @@ async def contract_number_chosen(message: Message, state: FSMContext):
 
 @router.message(UserAuthorisationForm.waiting_for_password)
 async def user_password_chosen(message: Message, state: FSMContext):
-    password = message.text
     user_data = await state.get_data()
+    chosen_password = message.text
+    chosen_contract_number = user_data['contract_number']
 
-    await message.answer(text=f"TEST: {user_data['contract_number']}:{password}")
+    user_accounts_creds = main.db.get_user_accounts_creds()
+    for (contract_number, password) in user_accounts_creds:
+        if chosen_contract_number == contract_number and chosen_password == password:
+
+            await message.answer(
+                text=f"Ваш аккаунт связан (пока нет) с ([contract:{chosen_contract_number}]:[password{chosen_password}])"
+            )
+
+    await message.answer(
+        text=f"Пользовательских аккаунтов с указанными данными ({chosen_contract_number}:{chosen_password}) не найдено"
+    )
 # -- End User authorize section --
 
 
