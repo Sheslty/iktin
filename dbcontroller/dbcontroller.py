@@ -1,110 +1,107 @@
-import sqlite3
-import logging
+from peewee import (
+    SqliteDatabase, Model, CharField, IntegerField,
+    ForeignKeyField, DateTimeField
+)
 
-from dbcontroller.sql_actions import SQlActions
-DEFAULT_DB_FILE = 'dbfile.db'
+from get_config import get_config
+
+
+config = get_config()
+db = SqliteDatabase(config['db_file'])
 
 
 class DataBaseController:
-    def __init__(self, db=DEFAULT_DB_FILE):
-        self.conn = sqlite3.connect(db)
 
-    def __enter__(self):
-        return self
+    @staticmethod
+    def init():
+        UserAccount.create_table()
+        TgUserAccount.create_table()
+        Order.create_table()
+        Manager.create_table()
+        Pretension.create_table()
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.conn.close()
+    @staticmethod
+    def create(model: type(Model), **kwargs) -> Model:
+        instance = model(**kwargs)
+        instance.save()
+        return instance
 
-    def __execute_sql(self, cmd):
-        try:
-            logging.debug(f'Execute CMD: {cmd}')
-            cursor = self.conn.cursor()
-            cursor.execute(cmd)
-            res = cursor.fetchall()
-            if res is None:
-                return []
-            return res
+    @staticmethod
+    def get_user_ids() -> list:
+        users = TgUserAccount.select()
+        return [user.tg_id for user in users]
 
-        except Exception as ex:
-            logging.error(f'Exception while executing cmd {cmd}: {ex}')
-            raise
-
-    def __execute_and_commit_sql(self, cmd):
-        try:
-            self.__execute_sql(cmd)
-            self.conn.commit()
-        except Exception as ex:
-            logging.error(f'Exception while commit cmd {cmd}: {ex}')
-            self.conn.rollback()
-            raise
-
-    def init(self):
-        try:
-            cmd = "CREATE TABLE IF NOT EXISTS user_accounts (" \
-                  "    id INTEGER PRIMARY KEY AUTOINCREMENT," \
-                  "    mail CHAR NOT NULL," \
-                  "    password CHAR NOT NULL," \
-                  "    contract_number INT NOT NULL," \
-                  "    order_id INT," \
-                  "    UNIQUE (contract_number, mail)," \
-                  "    FOREIGN KEY(order_id) REFERENCES orders(id) ON DELETE SET NULL" \
-                  ");"
-            self.__execute_sql(cmd)
-
-            cmd = "CREATE TABLE IF NOT EXISTS orders (" \
-                  "    id INTEGER PRIMARY KEY AUTOINCREMENT," \
-                  "    name CHAR," \
-                  "    info CHAR" \
-                  ");"
-            self.__execute_sql(cmd)
-
-            cmd = "CREATE TABLE IF NOT EXISTS tg_users (" \
-                  "    id INTEGER PRIMARY KEY AUTOINCREMENT," \
-                  "    tg_id INT NOT NULL UNIQUE," \
-                  "    tg_username CHAR NOT NULL," \
-                  "    account_id INT NOT NULL," \
-                  "    manager_id INT NOT NULL," \
-                  "    UNIQUE (tg_id)," \
-                  "    FOREIGN KEY(account_id) REFERENCES user_accounts(id) ON DELETE CASCADE" \
-                  "    FOREIGN KEY(manager_id) REFERENCES managers(id) ON DELETE SET NULL" \
-                  ");"
-            self.__execute_sql(cmd)
-
-            cmd = "CREATE TABLE IF NOT EXISTS managers (" \
-                  "    id INTEGER PRIMARY KEY AUTOINCREMENT," \
-                  "    tg_id INT NOT NULL UNIQUE," \
-                  "    tg_username CHAR NOT NULL," \
-                  "    password CHAR NOT NULL" \
-                  ");"
-            self.__execute_sql(cmd)
-
-            cmd = "CREATE TABLE IF NOT EXISTS pretension (" \
-                  "    id INTEGER PRIMARY KEY AUTOINCREMENT," \
-                  "    user_id INT NOT NULL," \
-                  "    status CHAR NOT NULL," \
-                  "    type INT NOT NULL," \
-                  "    message CHAR," \
-                  "    creation_datetime DATETIME," \
-                  "    FOREIGN KEY(user_id) REFERENCES tg_users(id) ON DELETE CASCADE" \
-                  ");"
-            self.__execute_sql(cmd)
-
-            self.conn.commit()
-
-        except Exception as ex:
-            logging.exception(f'Database init error {ex}')
-            self.conn.rollback()
-
-    def get_users_ids(self):
-        return ()
-
-    def get_managers_ids(self):
-        return ()
+    @staticmethod
+    def get_manager_ids() -> list:
+        users = TgUserAccount.select()
+        return [user.tg_id for user in users]
 
     def create_accounts_link(self):
-        sql = SQlActions.GET_USER_ACCOUNTS_CREDS
-        return self.__execute_sql(sql)
+        return
 
     def get_user_accounts_creds(self):
-        sql = SQlActions.GET_USER_ACCOUNTS_CREDS
-        return self.__execute_sql(sql)
+        return
+
+
+class Order(Model):
+    name = CharField()
+    info = CharField()
+
+    class Meta:
+        database = db
+
+
+class UserAccount(Model):
+    mail = CharField(null=False, unique=True)
+    password = CharField(null=False)
+    contract_number = IntegerField(null=False, unique=True)
+    order_id = ForeignKeyField(Order, on_delete='SET NULL')
+
+    class Meta:
+        database = db
+
+
+class TgUserAccount(Model):
+    tg_id = IntegerField(null=False, unique=True)
+    tg_username = CharField(null=False)
+    account_id = ForeignKeyField(UserAccount, on_delete='CASCADE')
+    manager_id = ForeignKeyField(UserAccount, on_delete='SET NULL')
+
+    class Meta:
+        database = db
+
+
+class Manager(Model):
+    tg_id = IntegerField(null=False, unique=True)
+    tg_username = CharField(null=False)
+    password = CharField(null=False)
+
+    class Meta:
+        database = db
+
+
+class Pretension(Model):
+    user_id = ForeignKeyField(TgUserAccount, null=False, on_delete='CASCADE')
+    status = CharField(null=False)
+    _type = IntegerField(null=False)
+    message = CharField()
+    creation_datetime = DateTimeField()
+
+    class Meta:
+        database = db
+
+
+if __name__ == '__main__':
+    controller = DataBaseController()
+    order = controller.create(Order, name='name1', info='info1')
+    manager = controller.create(Manager, tg_id=4, tg_username='name1',
+                                password='pass1')
+    user = controller.create(UserAccount, mail='mail1', password='pass1',
+                             contract_number=4, order_id=order.id)
+    controller.create(TgUserAccount, tg_id=5, tg_username='name1',
+                      account_id=user.id, manager_id=manager.id)
+    controller.init()
+    user_ids = controller.get_user_ids()
+    print(user_ids)
+    manager_ids = controller.get_manager_ids()
+    print(manager_ids)
