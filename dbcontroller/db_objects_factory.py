@@ -1,38 +1,41 @@
 from dbcontroller.models import (
-    Orders, Managers, TgUserAccounts, UserAccounts, TgPretensions
+    Order, Manager, TgUserAccount, UserAccount, TgPretension, TgManager
 )
 
 
 class DbObjectsFactory:
-    order = Orders
-    manager = Managers
-    tg_user_account = TgUserAccounts
-    user_account = UserAccounts
-    pretension = TgPretensions
+    order = Order
+    manager = Manager
+    tg_manager = TgManager
+    tg_user_account = TgUserAccount
+    user_account = UserAccount
+    tg_pretension = TgPretension
 
     def init(self):
-        self.order.create_table()
-        self.manager.create_table()
-        self.tg_user_account.create_table()
-        self.user_account.create_table()
-        self.pretension.create_table()
+        self.order.create_table(safe=True)
+        self.manager.create_table(safe=True)
+        self.tg_user_account.create_table(safe=True)
+        self.user_account.create_table(safe=True)
+        self.tg_manager.create_table(safe=True)
+        self.tg_pretension.create_table(safe=True)
 
-    def create_order(self, **kwargs) -> Orders:
+    def create_order(self, **kwargs) -> Order:
         return self.order.create(**kwargs)
 
-    def create_manager(self, **kwargs) -> Managers:
+    def create_manager(self, **kwargs) -> Manager:
         return self.manager.create(**kwargs)
 
-    def create_tg_user_account(self, **kwargs) -> TgUserAccounts:
+    def create_tg_user_account(self, **kwargs) -> TgUserAccount:
         return self.tg_user_account.create(**kwargs)
 
-    def create_user_account(self, **kwargs) -> UserAccounts:
+    def create_user_account(self, **kwargs) -> UserAccount:
         return self.user_account.create(**kwargs)
 
-    def create_pretension(self, **kwargs) -> TgPretensions:
+    def create_pretension(self, **kwargs) -> TgPretension:
         return self.pretension.create(**kwargs)
 
 
 if __name__ == '__main__':
     c = DbObjectsFactory()
-    c.create_manager(tg_id=10, tg_username='qwe', password='qwe')
+    c.init()
+    c.create_tg_user_account(tg_id=300438464, tg_username='qwe', password='qwe', account_id=2, manager_id=2)

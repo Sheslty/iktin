@@ -6,9 +6,8 @@ from aiogram.types import Message, KeyboardButton, ReplyKeyboardMarkup
 from aiogram.fsm.context import FSMContext
 from aiogram.filters.state import State, StatesGroup
 
-import main
 from bot.messages import BotButtons
-from dbcontroller.models import TgUserAccounts, Managers, UserAccounts
+from dbcontroller.models import TgUserAccount, TgManager, UserAccount
 
 router = Router()
 
@@ -21,7 +20,7 @@ async def cmd_start(message: Message):
         [KeyboardButton(text=BotButtons.AUTHORISE_AS_USER),
          KeyboardButton(text=BotButtons.AUTHORISE_AS_MANAGER)]
     ]
-    existing_users = TgUserAccounts.select()
+    existing_users = TgUserAccount.select()
     existing_users_ids = [user.tg_id for user in existing_users]
     if message.from_user.id in existing_users_ids:
         user_buttons = [
@@ -33,7 +32,7 @@ async def cmd_start(message: Message):
         ]
         keyboard.extend(user_buttons)
 
-    existing_managers = Managers.select()
+    existing_managers = TgManager.select()
     existing_manager_ids = [manager.tg_id for manager in existing_managers]
     if message.from_user.id in existing_manager_ids:
         manager_buttons = [
@@ -80,13 +79,13 @@ async def user_password_chosen(message: Message, state: FSMContext):
         await state.clear()
         return
 
-    user_accounts_creds = UserAccounts.select()
+    user_accounts_creds = UserAccount.select()
     for user in user_accounts_creds:
         if chosen_contract_number == user.contract_number and chosen_password == user.password:
             await message.answer(
                 text=f"Ваш аккаунт связан с ([contract:{chosen_contract_number}]:[password:{chosen_password}])"
             )
-            TgUserAccounts.create(tg_id=message.from_user.id, tg_username=message.from_user.username, account_id=user.id)
+            TgUserAccount.create(tg_id=message.from_user.id, tg_username=message.from_user.username, account_id=user.id)
             await state.clear()
             return
 
@@ -124,13 +123,13 @@ async def managers_password_chosen(message: Message, state: FSMContext):
         await state.clear()
         return
 
-    user_accounts_creds = UserAccounts.select()
+    user_accounts_creds = UserAccount.select()
     for user in user_accounts_creds:
         if chosen_contract_number == user.contract_number and chosen_password == user.password:
             await message.answer(
                 text=f"Welcome dungeon master"
             )
-            TgUserAccounts.create(tg_id=message.from_user.id,
+            TgUserAccount.create(tg_id=message.from_user.id,
                                  tg_username=message.from_user.username,
                                  account_id=user.id)
             await state.clear()
