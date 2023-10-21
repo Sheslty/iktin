@@ -5,29 +5,15 @@ from aiogram import Router, F, types
 from aiogram.types import Message
 from aiogram.filters.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
+from bot.keyboards import consignment_type_choose
 
 from bot.messages import BotButtons
 
 router = Router()
 
-
-def get_consignment_type_choose_kb():
-    buttons = [
-        [
-            types.InlineKeyboardButton(text="Нарушение сроков доставки", callback_data="cons_term"),
-            types.InlineKeyboardButton(text="Порча вложения", callback_data="cons_broke_item")
-        ],
-        [
-            types.InlineKeyboardButton(text="Утеря вложения", callback_data="cons_lost_item"),
-            types.InlineKeyboardButton(text="Повреждение упаковки", callback_data="cons_broke_box")
-        ]
-    ]
-    return types.InlineKeyboardMarkup(inline_keyboard=buttons)
-
-
 @router.message(F.text == BotButtons.CONSIGNMENT_CREATE)
 async def process_consignment_create(message: Message):
-    keyboard = get_consignment_type_choose_kb()
+    keyboard = consignment_type_choose
     await message.answer("Выберите причину претензии", reply_markup=keyboard)
 
 
