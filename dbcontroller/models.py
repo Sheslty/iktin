@@ -1,3 +1,4 @@
+from datetime import datetime
 from pathlib import Path
 from json import load
 
@@ -14,6 +15,7 @@ def get_config() -> dict:
 
 config = get_config()
 db = SqliteDatabase(config['db_file'])
+
 
 class Managers(Model):
     mail = CharField(null=False, unique=True)
@@ -34,13 +36,16 @@ class UserAccounts(Model):
         database = db
         db_table = 'user_accounts'
 
+
 class Orders(Model):
     name = CharField(null=False)
     info = CharField()
     account_id = ForeignKeyField(UserAccounts, on_delete='CASCADE')
+
     class Meta:
         database = db
         db_table = 'orders'
+
 
 class TgUserAccounts(Model):
     tg_id = IntegerField(null=False, unique=True)
@@ -56,8 +61,8 @@ class TgUserAccounts(Model):
 class TgManagers(Model):
     tg_id = IntegerField(null=False, unique=True)
     tg_username = CharField(null=False)
-    password = CharField(null=False)
     account_id = ForeignKeyField(Managers, on_delete='CASCADE')
+
     class Meta:
         database = db
         db_table = 'tg_manager'
@@ -68,7 +73,7 @@ class TgPretensions(Model):
     status = CharField(null=False)
     _type = IntegerField(null=False)
     message = CharField()
-    creation_datetime = DateTimeField()
+    creation_datetime = DateTimeField(default=datetime.now)
 
     class Meta:
         database = db
