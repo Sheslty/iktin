@@ -15,50 +15,56 @@ def get_config() -> dict:
 config = get_config()
 db = SqliteDatabase(config['db_file'])
 
-
-class Order(Model):
-    name = CharField()
-    info = CharField()
+class Managers(Model):
+    mail = CharField(null=False, unique=True)
+    login = CharField(null=False, unique=True)
+    password = CharField(null=False)
 
     class Meta:
         database = db
-        db_table = 'order'
+        db_table = 'managers'
 
 
-class UserAccount(Model):
+class UserAccounts(Model):
     mail = CharField(null=False, unique=True)
     password = CharField(null=False)
     contract_number = IntegerField(null=False, unique=True)
-    order_id = ForeignKeyField(Order, on_delete='SET NULL', null=True)
 
     class Meta:
         database = db
-        db_table = 'user_account'
+        db_table = 'user_accounts'
 
+class Orders(Model):
+    name = CharField(null=False)
+    info = CharField()
+    account_id = ForeignKeyField(UserAccounts, on_delete='CASCADE')
+    class Meta:
+        database = db
+        db_table = 'orders'
 
-class TgUserAccount(Model):
+class TgUserAccounts(Model):
     tg_id = IntegerField(null=False, unique=True)
     tg_username = CharField(null=False)
-    account_id = ForeignKeyField(UserAccount, on_delete='CASCADE')
-    manager_id = ForeignKeyField(UserAccount, on_delete='SET NULL', null=True)
+    account_id = ForeignKeyField(UserAccounts, on_delete='CASCADE')
+    manager_id = ForeignKeyField(UserAccounts, on_delete='SET NULL', null=True)
 
     class Meta:
         database = db
-        db_table = 'tg_user_account'
+        db_table = 'tg_user_accounts'
 
 
-class Manager(Model):
+class TgManagers(Model):
     tg_id = IntegerField(null=False, unique=True)
     tg_username = CharField(null=False)
     password = CharField(null=False)
-
+    account_id = ForeignKeyField(Managers, on_delete='CASCADE')
     class Meta:
         database = db
-        db_table = 'manager'
+        db_table = 'tg_manager'
 
 
-class Pretension(Model):
-    user_id = ForeignKeyField(TgUserAccount, null=False, on_delete='CASCADE')
+class TgPretensions(Model):
+    user_id = ForeignKeyField(TgUserAccounts, null=False, on_delete='CASCADE')
     status = CharField(null=False)
     _type = IntegerField(null=False)
     message = CharField()
@@ -66,4 +72,4 @@ class Pretension(Model):
 
     class Meta:
         database = db
-        db_table = 'pretension'
+        db_table = 'tg_pretension'

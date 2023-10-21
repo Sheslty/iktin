@@ -8,7 +8,7 @@ from aiogram.filters.state import State, StatesGroup
 
 import main
 from bot.messages import BotButtons
-from dbcontroller.models import TgUserAccount, Manager, UserAccount
+from dbcontroller.models import TgUserAccount, Manager, UserAccounts
 
 router = Router()
 
@@ -77,7 +77,7 @@ async def user_password_chosen(message: Message, state: FSMContext):
         await state.clear()
         return
 
-    user_accounts_creds = UserAccount.select()
+    user_accounts_creds = UserAccounts.select()
     for user in user_accounts_creds:
         if chosen_contract_number == user.contract_number and chosen_password == user.password:
             await message.answer(
@@ -93,11 +93,48 @@ async def user_password_chosen(message: Message, state: FSMContext):
     await state.clear()
 
 # -- End User authorize section --
+class ManagerAuthorisationForm(StatesGroup):
+    waiting_for_managers_login = State()
+    waiting_for_managers_password = State()
 
 
 # -- Manager authorize section --
-# TODO: спросить у пользователя логин пароль от менеджер-аккаунта
 @router.message(F.text == BotButtons.AUTHORISE_AS_MANAGER)
-async def process_manager_authorise(message: Message):
-    await message.answer("NULL")
+async def process_user_authorise(message: Message, state: FSMContext):
+    await message.reply(f"Введите логин")
+    await state.set_state(ManagerAuthorisationForm.waiting_for_managers_login)
+@router.message(ManagerAuthorisationForm.waiting_for_managers_login)
+async def managers_login_chosen(message: Message, state: FSMContext):
+    await state.update_data(managers_login=message.text)
+    await message.reply(f"Введите пароль")
+
+    await state.set_state(ManagerAuthorisationForm.waiting_for_managers_password)
+
+@router.message(ManagerAuthorisationForm.waiting_for_managers_password)
+async def managers_password_chosen(message: Message, state: FSMContext):
+    try:
+        managers_data = await state.get_data()
+        chosen_password = message.text
+        chosen_contract_number = managers_data['managers_login']
+    except Exception as e:
+        await message.answer("Некорректные данные")
+        await state.clear()
+        return
+
+    user_accounts_creds = UserAccounts.select()
+    for user in user_accounts_creds:
+        if chosen_contract_number == user.contract_number and chosen_password == user.password:
+            await message.answer(
+                text=f"Welcome dungeon master"
+            )
+            TgUserAccount.create(tg_id=message.from_user.id,
+                                 tg_username=message.from_user.username,
+                                 account_id=user.id)
+            await state.clear()
+            return
+
+    await message.answer(
+        text=f"Менеджерских аккаунтов с указанными данными ({chosen_contract_number}:{chosen_password}) не найдено"
+    )
+    await state.clear()
 # -- End Manager authorize section --

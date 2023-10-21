@@ -1,5 +1,5 @@
 from dbcontroller.models import (
-    Order, Manager, TgUserAccount, UserAccount, Pretension
+    Order, Manager, TgUserAccount, UserAccounts, Pretension
 )
 
 
@@ -7,7 +7,7 @@ class DbObjectsFactory:
     order = Order
     manager = Manager
     tg_user_account = TgUserAccount
-    user_account = UserAccount
+    user_account = UserAccounts
     pretension = Pretension
 
     def init(self):
@@ -26,7 +26,7 @@ class DbObjectsFactory:
     def create_tg_user_account(self, **kwargs) -> TgUserAccount:
         return self.tg_user_account.create(**kwargs)
 
-    def create_user_account(self, **kwargs) -> UserAccount:
+    def create_user_account(self, **kwargs) -> UserAccounts:
         return self.user_account.create(**kwargs)
 
     def create_pretension(self, **kwargs) -> Pretension:
