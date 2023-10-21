@@ -5,7 +5,7 @@ from aiogram import Bot, Dispatcher
 import yaml
 from aiogram.fsm.storage.memory import MemoryStorage
 # from bot.middlewares import StartMessageMiddleware
-from bot.handlers import start_hanlers, users_handlers, managers_handlers
+from bot.handlers import start_handlers, users_handlers, managers_handlers
 
 from datatypes import SessionData
 from dbcontroller.dbcontroller import DataBaseController
