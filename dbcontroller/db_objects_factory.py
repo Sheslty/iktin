@@ -8,7 +8,7 @@ class DbObjectsFactory:
     manager = Managers
     tg_user_account = TgUserAccounts
     user_account = UserAccounts
-    pretension = Pretensions
+    pretension = TgPretensions
 
     def init(self):
         self.order.create_table()
@@ -31,3 +31,8 @@ class DbObjectsFactory:
 
     def create_pretension(self, **kwargs) -> TgPretensions:
         return self.pretension.create(**kwargs)
+
+
+if __name__ == '__main__':
+    c = DbObjectsFactory()
+    c.create_manager(tg_id=10, tg_username='qwe', password='qwe')

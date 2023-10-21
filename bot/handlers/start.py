@@ -25,8 +25,11 @@ async def cmd_start(message: Message):
     existing_users_ids = [user.tg_id for user in existing_users]
     if message.from_user.id in existing_users_ids:
         user_buttons = [
-            [KeyboardButton(text=BotButtons.CONSIGNMENT_CREATE),
-             KeyboardButton(text=BotButtons.CARGO_TRACKING)]
+            [
+                KeyboardButton(text=BotButtons.CONSIGNMENT_CREATE),
+                KeyboardButton(text=BotButtons.CARGO_TRACKING),
+                KeyboardButton(text=BotButtons.CREATE_INVOICE)
+            ]
         ]
         keyboard.extend(user_buttons)
 
