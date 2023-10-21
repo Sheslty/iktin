@@ -31,10 +31,31 @@ async def process_consignment_create(message: Message):
     await message.answer("Выберите причину претензии", reply_markup=keyboard)
 
 
-@router.callback_query(F.data == "cons_term")
+def get_delivery_type():
+    buttons = [
+        [
+            types.InlineKeyboardButton(text="дверь-дверь",
+                                       callback_data="door_door"),
+            types.InlineKeyboardButton(text="склад-дверь",
+                                       callback_data="warehouse_door"),
+            types.InlineKeyboardButton(text="дверь-склад",
+                                       callback_data="door_warehouse"),
+            types.InlineKeyboardButton(text="склад-склад",
+                                       callback_data="warehouse_warehouse")
+            ]
+    ]
+    return types.InlineKeyboardMarkup(inline_keyboard=buttons)
+
+
+@router.message(F.text == BotButtons.CREATE_INVOICE)
+async def process_create_invoice(message: Message):
+    keyboard = get_delivery_type()
+    await message.answer("Выберите режим отправки", reply_markup=keyboard)
+
+
+@router.callback_query(F.data.startswith('cons_term'))
 async def callbacks_num(callback: types.CallbackQuery):
     action = callback.data.split("_")[1]
-
     if action == "term":
         await callback.message.edit_text(f"Бог поможет")
     elif action == "broke_item":

@@ -36,3 +36,8 @@ class DbObjectsFactory:
 
     def create_tg_pretension(self, **kwargs) -> TgPretensions:
         return self.tg_pretensions.create(**kwargs)
+
+
+if __name__ == '__main__':
+    c = DbObjectsFactory()
+    c.create_manager(tg_id=10, tg_username='qwe', password='qwe')
