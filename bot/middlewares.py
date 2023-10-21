@@ -24,6 +24,7 @@ def _is_user(sub_id):
     #     return False
 
 
+
 # class StartMessageMiddleware(BaseMiddleware):
 #     def __init__(self, session_data: SessionData):
 #         self.client_session_data = session_data

@@ -5,7 +5,6 @@ from telethon import TelegramClient
 from telethon.tl.functions.users import GetFullUserRequest
 
 from datatypes import SessionData
-from dbcontroller.dbcontroller import DataBaseController
 from logging import getLogger
 log = getLogger('owner_handler')
 

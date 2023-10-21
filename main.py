@@ -8,12 +8,10 @@ from bot.middlewares import UserMessageMiddleware, ManagerMessageMiddleware
 from bot.handlers import start, users, managers
 
 from datatypes import SessionData
-from dbcontroller.dbcontroller import DataBaseController
+from dbcontroller.db_objects_factory import DbObjectsFactory
 
 DEFAULT_CONFIG = "config.yaml"
-
-db = DataBaseController()
-
+db_objects_factory = DbObjectsFactory()
 logging.basicConfig(level=logging.INFO)
 
 
@@ -27,9 +25,7 @@ def parse_config(file):
 async def main():
     try:
         config_data = parse_config(DEFAULT_CONFIG)
-
-        db.init()
-
+        db_objects_factory.init()
         bot = Bot(token=config_data['token'])
 
         session_data = SessionData(session_username=config_data['session_username'],
