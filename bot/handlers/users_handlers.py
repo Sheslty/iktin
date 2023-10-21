@@ -7,7 +7,6 @@ from aiogram.fsm.context import FSMContext
 
 from bot.massages import BotButtons
 
-import dbcontroller.dbcontroller
 
 router = Router()
 

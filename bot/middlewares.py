@@ -3,7 +3,7 @@ from aiogram.types import Message
 from typing import Callable, Dict, Any, Awaitable
 
 from datatypes import SessionData
-from dbcontroller import dbcontroller
+from dbcontroller import db_objects_factory
 
 
 # class StartMessageMiddleware(BaseMiddleware):

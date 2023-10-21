@@ -5,10 +5,10 @@ from aiogram.filters import Command
 from aiogram.types import Message, KeyboardButton, ReplyKeyboardMarkup
 from aiogram.fsm.context import FSMContext
 from aiogram.filters.state import State, StatesGroup
-from bot.handlers.routers_helper import get_user_id
 
 import main
 from bot.massages import BotButtons
+from dbcontroller.models import TgUserAccount, Manager
 
 router = Router()
 
@@ -19,18 +19,17 @@ async def cmd_start(message: Message):
     keyboard = [
         [KeyboardButton(text=BotButtons.AUTHORISE_AS_USER), KeyboardButton(text=BotButtons.AUTHORISE_AS_MANAGER)]
     ]
-
-    # TODO: сделать метод получения id пользователей из db в dbcontroller'e и вызвать тут
-    users_ids = main.db.get_users_ids()
-    if (message.from_user.id,) in users_ids:
+    existing_users = TgUserAccount.select()
+    existing_users_ids = [user.tg_id for user in existing_users]
+    if message.from_user.id in existing_users_ids:
         user_buttons = [
             [KeyboardButton(text=BotButtons.CONSIGNMENT_CREATE), KeyboardButton(text=BotButtons.CARGO_TRACKING)]
         ]
         keyboard.extend(user_buttons)
 
-    # TODO: сделать метод получения id менеджеров из db в dbcontroller'e и вызвать тут
-    managers_ids = main.db.get_managers_ids()
-    if (message.from_user.id,) in managers_ids:
+    existing_managers = Manager.select()
+    existing_manager_ids = [manager.tg_id for manager in existing_managers]
+    if message.from_user.id in existing_manager_ids:
         manager_buttons = [
             [KeyboardButton(text=BotButtons.GET_LINKED_USERS)]
         ]
