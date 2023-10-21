@@ -61,7 +61,7 @@ class DataBaseController:
                   "     tg_id INT NOT NULL," \
                   "     tg_username CHAR," \
                   "     account_id INT," \
-                  "     manager_id INT" \
+                  "     manager_id INT," \
                   "     UNIQUE (tg_id)" \
                   ");"
             self.__execute_sql(cmd)
