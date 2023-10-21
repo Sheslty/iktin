@@ -4,7 +4,7 @@ from json import load
 
 from peewee import (
     SqliteDatabase, Model, CharField, IntegerField,
-    ForeignKeyField, DateTimeField, PrimaryKeyField
+    ForeignKeyField, DateTimeField
 )
 
 
@@ -17,7 +17,7 @@ config = get_config()
 db = SqliteDatabase(config['db_file'])
 
 
-class Managers(Model):
+class Manager(Model):
     mail = CharField(null=False, unique=True)
     login = CharField(null=False, unique=True)
     password = CharField(null=False)
@@ -27,7 +27,7 @@ class Managers(Model):
         db_table = 'managers'
 
 
-class UserAccounts(Model):
+class UserAccount(Model):
     mail = CharField(null=False, unique=True)
     password = CharField(null=False)
     contract_number = IntegerField(null=False, unique=True)
@@ -37,39 +37,39 @@ class UserAccounts(Model):
         db_table = 'user_accounts'
 
 
-class Orders(Model):
+class Order(Model):
     name = CharField(null=False)
     info = CharField()
-    account_id = ForeignKeyField(UserAccounts, on_delete='CASCADE')
+    user_id = ForeignKeyField(UserAccount, on_delete='CASCADE')
 
     class Meta:
         database = db
         db_table = 'orders'
 
 
-class TgUserAccounts(Model):
+class TgManager(Model):
     tg_id = IntegerField(null=False, unique=True)
     tg_username = CharField(null=False)
-    account_id = ForeignKeyField(UserAccounts, on_delete='CASCADE')
-    manager_id = ForeignKeyField(UserAccounts, on_delete='SET NULL', null=True)
+    manager_id = ForeignKeyField(Manager, on_delete='CASCADE')
+
+    class Meta:
+        database = db
+        db_table = 'tg_managers'
+
+
+class TgUserAccount(Model):
+    tg_id = IntegerField(null=False, unique=True)
+    tg_username = CharField(null=False)
+    user_id = ForeignKeyField(UserAccount, on_delete='CASCADE')
+    manager_id = ForeignKeyField(TgManager, on_delete='SET NULL', null=True)
 
     class Meta:
         database = db
         db_table = 'tg_user_accounts'
 
 
-class TgManagers(Model):
-    tg_id = IntegerField(null=False, unique=True)
-    tg_username = CharField(null=False)
-    account_id = ForeignKeyField(Managers, on_delete='CASCADE')
-
-    class Meta:
-        database = db
-        db_table = 'tg_manager'
-
-
-class TgPretensions(Model):
-    user_id = ForeignKeyField(TgUserAccounts, null=False, on_delete='CASCADE')
+class TgPretension(Model):
+    user_id = ForeignKeyField(TgUserAccount, null=False, on_delete='CASCADE')
     status = CharField(null=False)
     _type = IntegerField(null=False)
     message = CharField()
@@ -77,4 +77,4 @@ class TgPretensions(Model):
 
     class Meta:
         database = db
-        db_table = 'tg_pretension'
+        db_table = 'tg_pretensions'

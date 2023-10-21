@@ -1,43 +1,41 @@
 from dbcontroller.models import (
-    Orders, Managers, TgUserAccounts, UserAccounts, TgPretensions, TgManagers
+    Orders, Managers, TgUserAccounts, UserAccounts, TgPretensions
 )
 
 
 class DbObjectsFactory:
-    orders = Orders
-    managers = Managers
-    tg_user_accounts = TgUserAccounts
-    user_accounts = UserAccounts
-    tg_pretensions = TgPretensions
-    tg_managers = TgManagers
+    order = Order
+    manager = Manager
+    tg_manager = TgManager
+    tg_user_account = TgUserAccount
+    user_account = UserAccount
+    tg_pretension = TgPretension
 
     def init(self):
-        self.orders.create_table()
-        self.managers.create_table()
-        self.tg_user_accounts.create_table()
-        self.user_accounts.create_table()
-        self.tg_pretensions.create_table()
-        self.tg_managers.create_table()
+        self.order.create_table(safe=True)
+        self.manager.create_table(safe=True)
+        self.tg_user_account.create_table(safe=True)
+        self.user_account.create_table(safe=True)
+        self.tg_manager.create_table(safe=True)
+        self.tg_pretension.create_table(safe=True)
 
-    def create_order(self, **kwargs) -> Orders:
-        return self.orders.create(**kwargs)
+    def create_order(self, **kwargs) -> Order:
+        return self.order.create(**kwargs)
 
-    def create_manager(self, **kwargs) -> Managers:
-        return self.managers.create(**kwargs)
+    def create_manager(self, **kwargs) -> Manager:
+        return self.manager.create(**kwargs)
 
-    def create_tg_manager(self, **kwargs) -> TgManagers:
-        return self.tg_managers.create(**kwargs)
+    def create_tg_user_account(self, **kwargs) -> TgUserAccount:
+        return self.tg_user_account.create(**kwargs)
 
-    def create_tg_user_account(self, **kwargs) -> TgUserAccounts:
-        return self.tg_user_accounts.create(**kwargs)
+    def create_user_account(self, **kwargs) -> UserAccount:
+        return self.user_account.create(**kwargs)
 
-    def create_user_account(self, **kwargs) -> UserAccounts:
-        return self.user_accounts.create(**kwargs)
-
-    def create_tg_pretension(self, **kwargs) -> TgPretensions:
-        return self.tg_pretensions.create(**kwargs)
+    def create_pretension(self, **kwargs) -> TgPretension:
+        return self.pretension.create(**kwargs)
 
 
 if __name__ == '__main__':
     c = DbObjectsFactory()
-    c.create_manager(tg_id=10, tg_username='qwe', password='qwe')
+    c.init()
+    c.create_tg_user_account(tg_id=300438464, tg_username='qwe', password='qwe', account_id=2, manager_id=2)
