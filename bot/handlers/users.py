@@ -1,6 +1,7 @@
 from aiogram import Router, F, types
 from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
+import bot.keyboards as keyboards
 
 from bot.messages import BotButtons
 from datatypes import Package, Item
@@ -9,19 +10,6 @@ from datatypes import Package, Item
 router = Router()
 
 
-def get_consignment_type_choose_kb():
-    buttons = [
-        [
-            types.InlineKeyboardButton(text="Нарушение сроков доставки", callback_data="cons_term"),
-            types.InlineKeyboardButton(text="Порча вложения", callback_data="cons_broke_item")
-        ],
-        [
-            types.InlineKeyboardButton(text="Утеря вложения", callback_data="cons_lost_item"),
-            types.InlineKeyboardButton(text="Повреждение упаковки", callback_data="cons_broke_box")
-        ]
-    ]
-    return types.InlineKeyboardMarkup(inline_keyboard=buttons)
-
 
 @router.message(F.text == BotButtons.CONSIGNMENT_CREATE)
 async def process_consignment_create(message: Message):
@@ -29,33 +17,9 @@ async def process_consignment_create(message: Message):
     await message.answer("Выберите причину претензии", reply_markup=keyboard)
 
 
-def get_delivery_type():
-    buttons = [
-        [
-            types.InlineKeyboardButton(
-                text="дверь-дверь",
-                callback_data="deliver_door_door"
-            ),
-            types.InlineKeyboardButton(
-                text="склад-дверь",
-                callback_data="deliver_warehouse_door"
-            ),
-            types.InlineKeyboardButton(
-                text="дверь-склад",
-                callback_data="deliver_door_warehouse"
-            ),
-            types.InlineKeyboardButton(
-                text="склад-склад",
-                callback_data="deliver_warehouse_warehouse"
-            )
-        ]
-    ]
-    return types.InlineKeyboardMarkup(inline_keyboard=buttons)
-
-
 @router.message(F.text == BotButtons.CREATE_INVOICE)
 async def process_create_invoice(message: Message, state: FSMContext):
-    keyboard = get_delivery_type()
+    keyboard = keyboards.delivery_type_choose
     await message.answer("Выберите режим отправки", reply_markup=keyboard,
                          state=state)
 

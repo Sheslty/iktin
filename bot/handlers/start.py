@@ -6,6 +6,7 @@ from aiogram.types import Message, KeyboardButton, ReplyKeyboardMarkup
 from aiogram.fsm.context import FSMContext
 from aiogram.filters.state import State, StatesGroup
 
+from peewee import fn
 from bot.messages import BotButtons
 from dbcontroller.models import TgUserAccount, TgManager, UserAccount, Manager
 
@@ -36,7 +37,7 @@ async def cmd_start(message: Message):
     existing_manager_ids = [manager.tg_id for manager in existing_managers]
     if message.from_user.id in existing_manager_ids:
         manager_buttons = [
-            [KeyboardButton(text=BotButtons.GET_LINKED_USERS)]
+            [KeyboardButton(text=BotButtons.GET_USERS_FOR_MANAGER)]
         ]
         keyboard.extend(manager_buttons)
 
@@ -68,6 +69,19 @@ async def contract_number_chosen(message: Message, state: FSMContext):
     await state.set_state(UserAuthorisationForm.waiting_for_password)
 
 
+# def __get_free_manager():
+#     query = (TgUserAccount
+#              .select(TgUserAccount.manager_id)
+#              .group_by(TgUserAccount.manager_id)
+#              .order_by(fn.COUNT(TgUserAccount.id)))
+#     free_managers = [manager for manager in query]
+#
+#     if len(free_managers):
+#         return free_managers[0]
+#
+#     return TgManager.select(TgManager.id).limit(1)
+
+
 @router.message(UserAuthorisationForm.waiting_for_password)
 async def user_password_chosen(message: Message, state: FSMContext):
     try:
@@ -79,13 +93,14 @@ async def user_password_chosen(message: Message, state: FSMContext):
         await state.clear()
         return
 
+    # free_manager = __get_free_manager()
     user_accounts_creds = UserAccount.select()
     for user in user_accounts_creds:
         if chosen_contract_number == user.contract_number and chosen_password == user.password:
+            TgUserAccount.create(tg_id=message.from_user.id, tg_username=message.from_user.username, user_id=user.id)
             await message.answer(
                 text=f"Ваш аккаунт связан с ([contract:{chosen_contract_number}]:[password:{chosen_password}])"
             )
-            TgUserAccount.create(tg_id=message.from_user.id, tg_username=message.from_user.username, user_id=user.id)
             await state.clear()
             return
 
@@ -94,6 +109,7 @@ async def user_password_chosen(message: Message, state: FSMContext):
     )
     await state.clear()
     return
+
 
 # -- End User authorize section --
 class ManagerAuthorisationForm(StatesGroup):
@@ -107,19 +123,21 @@ async def process_user_authorise(message: Message, state: FSMContext):
     await message.reply(f"Введите логин")
     await state.set_state(ManagerAuthorisationForm.waiting_for_managers_login)
 
+
 @router.message(ManagerAuthorisationForm.waiting_for_managers_login)
-async def managers_login_chosen(message: Message, state: FSMContext):
+async def manager_login_chosen(message: Message, state: FSMContext):
     await state.update_data(managers_login=message.text)
     await message.reply(f"Введите пароль")
 
     await state.set_state(ManagerAuthorisationForm.waiting_for_managers_password)
 
+
 @router.message(ManagerAuthorisationForm.waiting_for_managers_password)
-async def managers_password_chosen(message: Message, state: FSMContext):
+async def manager_password_chosen(message: Message, state: FSMContext):
     try:
         managers_data = await state.get_data()
-        chosen_password = message.text
         chosen_login = managers_data['managers_login']
+        chosen_password = message.text
     except Exception as e:
         await message.answer("Некорректные данные")
         await state.clear()
@@ -128,12 +146,12 @@ async def managers_password_chosen(message: Message, state: FSMContext):
     managers_accounts_creds = Manager.select()
     for manager in managers_accounts_creds:
         if chosen_login == manager.login and chosen_password == manager.password:
-            await message.answer(
-                text=f"Welcome dungeon master"
-            )
             TgManager.create(tg_id=message.from_user.id,
                              tg_username=message.from_user.username,
-                             user_id=manager.id)
+                             manager_id=manager.id)
+            await message.answer(
+                text=f"Ваш аккаунт менеджера связан с ([login:{chosen_login}]:[password:{chosen_password}])"
+            )
             await state.clear()
             return
 

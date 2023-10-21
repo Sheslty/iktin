@@ -13,4 +13,5 @@ class BotButtons:
     CONSIGNMENT_CREATE = "Create consignment"
     CARGO_TRACKING = "Track cargo"
     CREATE_INVOICE = "Create invoice"
-    GET_LINKED_USERS = "My clients"
+
+    GET_USERS_FOR_MANAGER = "My clients"
