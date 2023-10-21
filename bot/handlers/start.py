@@ -8,7 +8,6 @@ from aiogram.filters.state import State, StatesGroup
 
 import main
 from bot.messages import BotButtons
-from bot.massages import BotButtons
 from dbcontroller.models import TgUserAccount, Manager
 
 router = Router()
