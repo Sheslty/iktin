@@ -2,14 +2,21 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 
 # --- Consignment keyboards section
-consignment_type_choose = InlineKeyboardMarkup(inline_keyboard=[
+class PretensionCallbacks:
+    PRETENSION_TERM = "pretension_term"
+    PRETENSION_BROKE_ITEM = "pretension_broke_item"
+    PRETENSION_LOST_ITEM = "pretension_lost_item"
+    PRETENSION_BROKE_BOX = "pretension_broke_box"
+
+
+pretension_type_choose = InlineKeyboardMarkup(inline_keyboard=[
         [
-            InlineKeyboardButton(text="Нарушение сроков доставки", callback_data="cons_term"),
-            InlineKeyboardButton(text="Порча вложения", callback_data="cons_broke_item")
+            InlineKeyboardButton(text="Нарушение сроков доставки", callback_data=PretensionCallbacks.PRETENSION_TERM),
+            InlineKeyboardButton(text="Порча вложения", callback_data=PretensionCallbacks.PRETENSION_BROKE_ITEM)
         ],
         [
-            InlineKeyboardButton(text="Утеря вложения", callback_data="cons_lost_item"),
-            InlineKeyboardButton(text="Повреждение упаковки", callback_data="cons_broke_box")
+            InlineKeyboardButton(text="Утеря вложения", callback_data=PretensionCallbacks.PRETENSION_LOST_ITEM),
+            InlineKeyboardButton(text="Повреждение упаковки", callback_data=PretensionCallbacks.PRETENSION_BROKE_BOX)
         ]
     ]
 )
