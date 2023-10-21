@@ -5,45 +5,22 @@ from aiogram import Router, F, types
 from aiogram.types import Message
 from aiogram.filters.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
-from bot.keyboards import consignment_type_choose
+import bot.keyboards as keyboards
 
 from bot.messages import BotButtons
 
 router = Router()
 
+
 @router.message(F.text == BotButtons.CONSIGNMENT_CREATE)
 async def process_consignment_create(message: Message):
-    keyboard = consignment_type_choose
+    keyboard = keyboards.consignment_type_choose
     await message.answer("Выберите причину претензии", reply_markup=keyboard)
-
-
-def get_delivery_type():
-    buttons = [
-        [
-            types.InlineKeyboardButton(
-                text="дверь-дверь",
-                callback_data="deliver_door_door"
-            ),
-            types.InlineKeyboardButton(
-                text="склад-дверь",
-                callback_data="deliver_warehouse_door"
-            ),
-            types.InlineKeyboardButton(
-                text="дверь-склад",
-                callback_data="deliver_door_warehouse"
-            ),
-            types.InlineKeyboardButton(
-                text="склад-склад",
-                callback_data="deliver_warehouse_warehouse"
-            )
-        ]
-    ]
-    return types.InlineKeyboardMarkup(inline_keyboard=buttons)
 
 
 @router.message(F.text == BotButtons.CREATE_INVOICE)
 async def process_create_invoice(message: Message, state: FSMContext):
-    keyboard = get_delivery_type()
+    keyboard = keyboards.delivery_type_choose
     await message.answer("Выберите режим отправки", reply_markup=keyboard,
                          state=state)
 

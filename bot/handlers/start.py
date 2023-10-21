@@ -82,10 +82,10 @@ async def user_password_chosen(message: Message, state: FSMContext):
     user_accounts_creds = UserAccount.select()
     for user in user_accounts_creds:
         if chosen_contract_number == user.contract_number and chosen_password == user.password:
+            TgUserAccount.create(tg_id=message.from_user.id, tg_username=message.from_user.username, user_id=user.id)
             await message.answer(
                 text=f"Ваш аккаунт связан с ([contract:{chosen_contract_number}]:[password:{chosen_password}])"
             )
-            TgUserAccount.create(tg_id=message.from_user.id, tg_username=message.from_user.username, account_id=user.id)
             await state.clear()
             return
 
@@ -107,19 +107,21 @@ async def process_user_authorise(message: Message, state: FSMContext):
     await message.reply(f"Введите логин")
     await state.set_state(ManagerAuthorisationForm.waiting_for_managers_login)
 
+
 @router.message(ManagerAuthorisationForm.waiting_for_managers_login)
-async def managers_login_chosen(message: Message, state: FSMContext):
+async def manager_login_chosen(message: Message, state: FSMContext):
     await state.update_data(managers_login=message.text)
     await message.reply(f"Введите пароль")
 
     await state.set_state(ManagerAuthorisationForm.waiting_for_managers_password)
 
+
 @router.message(ManagerAuthorisationForm.waiting_for_managers_password)
-async def managers_password_chosen(message: Message, state: FSMContext):
+async def manager_password_chosen(message: Message, state: FSMContext):
     try:
         managers_data = await state.get_data()
-        chosen_password = message.text
         chosen_login = managers_data['managers_login']
+        chosen_password = message.text
     except Exception as e:
         await message.answer("Некорректные данные")
         await state.clear()
@@ -128,12 +130,12 @@ async def managers_password_chosen(message: Message, state: FSMContext):
     managers_accounts_creds = Manager.select()
     for manager in managers_accounts_creds:
         if chosen_login == manager.login and chosen_password == manager.password:
-            await message.answer(
-                text=f"Welcome dungeon master"
-            )
             TgManager.create(tg_id=message.from_user.id,
-                                 tg_username=message.from_user.username,
-                                 account_id=manager.id)
+                             tg_username=message.from_user.username,
+                             account_id=manager.id)
+            await message.answer(
+                text=f"Ваш аккаунт менеджера связан с ([login:{chosen_login}]:[password:{chosen_password}])"
+            )
             await state.clear()
             return
 
