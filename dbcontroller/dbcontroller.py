@@ -40,32 +40,34 @@ class DataBaseController:
     def init(self):
         try:
             cmd = "CREATE TABLE IF NOT EXISTS user_accounts (" \
-                  "     id INT NOT NULL PRIMARY KEY," \
-                  "     mail CHAR NOT NULL UNIQUE," \
+                  "     id INTEGER PRIMARY KEY AUTOINCREMENT," \
+                  "     mail CHAR NOT NULL," \
                   "     password CHAR NOT NULL," \
-                  "     contract_number INT NOT NULL UNIQUE," \
-                  "     order_id INT" \
+                  "     contract_number INT NOT NULL," \
+                  "     order_id INT," \
+                  "     UNIQUE (contract_number, mail)" \
                   ");"
             self.__execute_sql(cmd)
 
             cmd = "CREATE TABLE IF NOT EXISTS orders (" \
-                  "     id INT NOT NULL PRIMARY KEY," \
+                  "     id INTEGER PRIMARY KEY AUTOINCREMENT," \
                   "     name CHAR," \
                   "     info CHAR" \
                   ");"
             self.__execute_sql(cmd)
 
             cmd = "CREATE TABLE IF NOT EXISTS tg_users (" \
-                  "     id INT NOT NULL PRIMARY KEY," \
-                  "     tg_id INT NOT NULL UNIQUE," \
+                  "     id INTEGER PRIMARY KEY AUTOINCREMENT," \
+                  "     tg_id INT NOT NULL," \
                   "     tg_username CHAR," \
                   "     account_id INT," \
                   "     manager_id INT" \
+                  "     UNIQUE (tg_id)" \
                   ");"
             self.__execute_sql(cmd)
 
             cmd = "CREATE TABLE IF NOT EXISTS managers (" \
-                  "     id INT NOT NULL PRIMARY KEY," \
+                  "     id INTEGER PRIMARY KEY AUTOINCREMENT," \
                   "     tg_id INT UNIQUE," \
                   "     tg_username CHAR," \
                   "     password CHAR NOT NULL" \
@@ -73,7 +75,7 @@ class DataBaseController:
             self.__execute_sql(cmd)
 
             cmd = "CREATE TABLE IF NOT EXISTS pretension (" \
-                  "     id INT NOT NULL PRIMARY KEY," \
+                  "     id INTEGER PRIMARY KEY AUTOINCREMENT," \
                   "     user_id INT UNIQUE," \
                   "     status CHAR," \
                   "     type INT," \
