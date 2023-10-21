@@ -132,7 +132,7 @@ async def manager_password_chosen(message: Message, state: FSMContext):
         if chosen_login == manager.login and chosen_password == manager.password:
             TgManager.create(tg_id=message.from_user.id,
                              tg_username=message.from_user.username,
-                             account_id=manager.id)
+                             manager_id=manager.id)
             await message.answer(
                 text=f"Ваш аккаунт менеджера связан с ([login:{chosen_login}]:[password:{chosen_password}])"
             )
