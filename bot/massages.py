@@ -1,3 +1,8 @@
+have_no_permission = "Have no permission"
+
+
+class BotMessages:
+    NO_PERMISSION = have_no_permission
 
 
 class BotButtons:

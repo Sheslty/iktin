@@ -4,8 +4,10 @@ import logging
 from aiogram import Bot, Dispatcher
 import yaml
 from aiogram.fsm.storage.memory import MemoryStorage
-# from bot.middlewares import StartMessageMiddleware, OwnerMessageMiddleware, SubscriberMessageMiddleware
+# from bot.middlewares import StartMessageMiddleware
 from bot.handlers import start_hanlers, users_handlers, managers_handlers
+
+from datatypes import SessionData
 from dbcontroller.dbcontroller import DataBaseController
 
 DEFAULT_CONFIG = "config.yaml"
@@ -30,7 +32,15 @@ async def main():
 
         bot = Bot(token=config_data['token'])
 
-        dispatcher = Dispatcher()
+        session_data = SessionData(session_username=config_data['session_username'],
+                                   api_hash=config_data['api_hash'],
+                                   api_id=config_data['api_id'])
+
+        # start_middleware = StartMessageMiddleware(session_data)
+        # start_hanlers.router.message.middleware(start_middleware)
+
+        storage = MemoryStorage()
+        dispatcher = Dispatcher(storage=storage)
         dispatcher.include_routers(start_hanlers.router)
 
         await dispatcher.start_polling(bot)
