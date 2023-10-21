@@ -41,47 +41,51 @@ class DataBaseController:
     def init(self):
         try:
             cmd = "CREATE TABLE IF NOT EXISTS user_accounts (" \
-                  "     id INTEGER PRIMARY KEY AUTOINCREMENT," \
-                  "     mail CHAR NOT NULL," \
-                  "     password CHAR NOT NULL," \
-                  "     contract_number INT NOT NULL," \
-                  "     order_id INT," \
-                  "     UNIQUE (contract_number, mail)" \
+                  "    id INTEGER PRIMARY KEY AUTOINCREMENT," \
+                  "    mail CHAR NOT NULL," \
+                  "    password CHAR NOT NULL," \
+                  "    contract_number INT NOT NULL," \
+                  "    order_id INT," \
+                  "    UNIQUE (contract_number, mail)," \
+                  "    FOREIGN KEY(order_id) REFERENCES orders(id) ON DELETE SET NULL" \
                   ");"
             self.__execute_sql(cmd)
 
             cmd = "CREATE TABLE IF NOT EXISTS orders (" \
-                  "     id INTEGER PRIMARY KEY AUTOINCREMENT," \
-                  "     name CHAR," \
-                  "     info CHAR" \
+                  "    id INTEGER PRIMARY KEY AUTOINCREMENT," \
+                  "    name CHAR," \
+                  "    info CHAR" \
                   ");"
             self.__execute_sql(cmd)
 
             cmd = "CREATE TABLE IF NOT EXISTS tg_users (" \
-                  "     id INTEGER PRIMARY KEY AUTOINCREMENT," \
-                  "     tg_id INT NOT NULL," \
-                  "     tg_username CHAR," \
-                  "     account_id INT," \
-                  "     manager_id INT," \
-                  "     UNIQUE (tg_id)" \
+                  "    id INTEGER PRIMARY KEY AUTOINCREMENT," \
+                  "    tg_id INT NOT NULL UNIQUE," \
+                  "    tg_username CHAR NOT NULL," \
+                  "    account_id INT NOT NULL," \
+                  "    manager_id INT NOT NULL," \
+                  "    UNIQUE (tg_id)" \
+                  "    FOREIGN KEY(account_id) REFERENCES user_accounts(id) ON DELETE CASCADE" \
+                  "    FOREIGN KEY(manager_id) REFERENCES managers(id) ON DELETE SET NULL" \
                   ");"
             self.__execute_sql(cmd)
 
             cmd = "CREATE TABLE IF NOT EXISTS managers (" \
-                  "     id INTEGER PRIMARY KEY AUTOINCREMENT," \
-                  "     tg_id INT UNIQUE," \
-                  "     tg_username CHAR," \
-                  "     password CHAR NOT NULL" \
+                  "    id INTEGER PRIMARY KEY AUTOINCREMENT," \
+                  "    tg_id INT NOT NULL UNIQUE," \
+                  "    tg_username CHAR NOT NULL," \
+                  "    password CHAR NOT NULL" \
                   ");"
             self.__execute_sql(cmd)
 
             cmd = "CREATE TABLE IF NOT EXISTS pretension (" \
-                  "     id INTEGER PRIMARY KEY AUTOINCREMENT," \
-                  "     user_id INT UNIQUE," \
-                  "     status CHAR," \
-                  "     type INT," \
-                  "     message INT," \
-                  "     creation_datetime DATETIME" \
+                  "    id INTEGER PRIMARY KEY AUTOINCREMENT," \
+                  "    user_id INT NOT NULL," \
+                  "    status CHAR NOT NULL," \
+                  "    type INT NOT NULL," \
+                  "    message CHAR," \
+                  "    creation_datetime DATETIME" \
+                  "    FOREIGN KEY(user_id) REFERENCES tg_users(id) ON DELETE CASCADE" \
                   ");"
             self.__execute_sql(cmd)
 
