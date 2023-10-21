@@ -1,7 +1,7 @@
 import sqlite3
 import logging
 
-from sql_actions import SQlActions
+from dbcontroller.sql_actions import SQlActions
 DEFAULT_DB_FILE = 'dbfile.db'
 
 
@@ -64,7 +64,7 @@ class DataBaseController:
                   "    tg_username CHAR NOT NULL," \
                   "    account_id INT NOT NULL," \
                   "    manager_id INT NOT NULL," \
-                  "    UNIQUE (tg_id)" \
+                  "    UNIQUE (tg_id)," \
                   "    FOREIGN KEY(account_id) REFERENCES user_accounts(id) ON DELETE CASCADE" \
                   "    FOREIGN KEY(manager_id) REFERENCES managers(id) ON DELETE SET NULL" \
                   ");"
@@ -84,7 +84,7 @@ class DataBaseController:
                   "    status CHAR NOT NULL," \
                   "    type INT NOT NULL," \
                   "    message CHAR," \
-                  "    creation_datetime DATETIME" \
+                  "    creation_datetime DATETIME," \
                   "    FOREIGN KEY(user_id) REFERENCES tg_users(id) ON DELETE CASCADE" \
                   ");"
             self.__execute_sql(cmd)
