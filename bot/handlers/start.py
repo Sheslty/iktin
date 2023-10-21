@@ -85,7 +85,7 @@ async def user_password_chosen(message: Message, state: FSMContext):
             await message.answer(
                 text=f"Ваш аккаунт связан с ([contract:{chosen_contract_number}]:[password:{chosen_password}])"
             )
-            TgUserAccount.create(tg_id=message.from_user.id, tg_username=message.from_user.username, account_id=user.id)
+            TgUserAccount.create(tg_id=message.from_user.id, tg_username=message.from_user.username, user_id=user.id)
             await state.clear()
             return
 
@@ -132,8 +132,8 @@ async def managers_password_chosen(message: Message, state: FSMContext):
                 text=f"Welcome dungeon master"
             )
             TgManager.create(tg_id=message.from_user.id,
-                                 tg_username=message.from_user.username,
-                                 account_id=manager.id)
+                             tg_username=message.from_user.username,
+                             user_id=manager.id)
             await state.clear()
             return
 
