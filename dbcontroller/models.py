@@ -3,7 +3,7 @@ from json import load
 
 from peewee import (
     SqliteDatabase, Model, CharField, IntegerField,
-    ForeignKeyField, DateTimeField
+    ForeignKeyField, DateTimeField, PrimaryKeyField
 )
 
 
@@ -22,26 +22,29 @@ class Order(Model):
 
     class Meta:
         database = db
+        db_table = 'order'
 
 
 class UserAccount(Model):
     mail = CharField(null=False, unique=True)
     password = CharField(null=False)
     contract_number = IntegerField(null=False, unique=True)
-    order_id = ForeignKeyField(Order, on_delete='SET NULL')
+    order_id = ForeignKeyField(Order, on_delete='SET NULL', null=True)
 
     class Meta:
         database = db
+        db_table = 'user_account'
 
 
 class TgUserAccount(Model):
     tg_id = IntegerField(null=False, unique=True)
     tg_username = CharField(null=False)
     account_id = ForeignKeyField(UserAccount, on_delete='CASCADE')
-    manager_id = ForeignKeyField(UserAccount, on_delete='SET NULL')
+    manager_id = ForeignKeyField(UserAccount, on_delete='SET NULL', null=True)
 
     class Meta:
         database = db
+        db_table = 'tg_user_account'
 
 
 class Manager(Model):
@@ -51,6 +54,7 @@ class Manager(Model):
 
     class Meta:
         database = db
+        db_table = 'manager'
 
 
 class Pretension(Model):
@@ -62,3 +66,4 @@ class Pretension(Model):
 
     class Meta:
         database = db
+        db_table = 'pretension'

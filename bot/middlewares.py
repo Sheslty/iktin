@@ -3,7 +3,7 @@ from aiogram.types import Message
 from typing import Callable, Dict, Any, Awaitable
 
 from datatypes import SessionData
-from messages import BotMessages
+from bot.messages import BotMessages
 
 
 def _is_manager(owner_id):

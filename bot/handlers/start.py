@@ -8,22 +8,25 @@ from aiogram.filters.state import State, StatesGroup
 
 import main
 from bot.messages import BotButtons
-from dbcontroller.models import TgUserAccount, Manager
+from dbcontroller.models import TgUserAccount, Manager, UserAccount
 
 router = Router()
 
 
 @router.message(Command("start"))
 async def cmd_start(message: Message):
-    logging.info(f'User {message.from_user.username}:{message.from_user.id} start / restart chat')
+    logging.info(
+        f'User {message.from_user.username}:{message.from_user.id} start / restart chat')
     keyboard = [
-        [KeyboardButton(text=BotButtons.AUTHORISE_AS_USER), KeyboardButton(text=BotButtons.AUTHORISE_AS_MANAGER)]
+        [KeyboardButton(text=BotButtons.AUTHORISE_AS_USER),
+         KeyboardButton(text=BotButtons.AUTHORISE_AS_MANAGER)]
     ]
     existing_users = TgUserAccount.select()
     existing_users_ids = [user.tg_id for user in existing_users]
     if message.from_user.id in existing_users_ids:
         user_buttons = [
-            [KeyboardButton(text=BotButtons.CONSIGNMENT_CREATE), KeyboardButton(text=BotButtons.CARGO_TRACKING)]
+            [KeyboardButton(text=BotButtons.CONSIGNMENT_CREATE),
+             KeyboardButton(text=BotButtons.CARGO_TRACKING)]
         ]
         keyboard.extend(user_buttons)
 
@@ -65,21 +68,30 @@ async def contract_number_chosen(message: Message, state: FSMContext):
 
 @router.message(UserAuthorisationForm.waiting_for_password)
 async def user_password_chosen(message: Message, state: FSMContext):
-    user_data = await state.get_data()
-    chosen_password = message.text
-    chosen_contract_number = user_data['contract_number']
+    try:
+        user_data = await state.get_data()
+        chosen_password = message.text
+        chosen_contract_number = int(user_data['contract_number'])
+    except Exception as e:
+        await message.answer("Некорректные данные")
+        await state.clear()
+        return
 
-    user_accounts_creds = main.db.get_user_accounts_creds()
-    for (contract_number, password) in user_accounts_creds:
-        if chosen_contract_number == contract_number and chosen_password == password:
-
+    user_accounts_creds = UserAccount.select()
+    for user in user_accounts_creds:
+        if chosen_contract_number == user.contract_number and chosen_password == user.password:
             await message.answer(
-                text=f"Ваш аккаунт связан (пока нет) с ([contract:{chosen_contract_number}]:[password{chosen_password}])"
+                text=f"Ваш аккаунт связан с ([contract:{chosen_contract_number}]:[password:{chosen_password}])"
             )
+            TgUserAccount.create(tg_id=message.from_user.id, tg_username=message.from_user.username, account_id=user.id)
+            await state.clear()
+            return
 
     await message.answer(
         text=f"Пользовательских аккаунтов с указанными данными ({chosen_contract_number}:{chosen_password}) не найдено"
     )
+    await state.clear()
+
 # -- End User authorize section --
 
 

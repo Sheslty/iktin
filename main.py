@@ -4,7 +4,7 @@ import logging
 from aiogram import Bot, Dispatcher
 import yaml
 from aiogram.fsm.storage.memory import MemoryStorage
-from bot.middlewares import UserMessageMiddleware, ManagerMessageMiddleware
+#from bot.middlewares import UserMessageMiddleware, ManagerMessageMiddleware
 from bot.handlers import start, users, managers
 
 from datatypes import SessionData
