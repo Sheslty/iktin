@@ -98,17 +98,17 @@ async def packages_number_callback(callback: types.CallbackQuery,
                                       state=state)
 
 
-@router.callback_query(F.data == 'description')
-async def description_callback(callback: types.CallbackQuery, state: FSMContext):
-    state_data = await state.get_data()
-    for package in range(state_data['packages']):
-        await callback.message.answer('Введите описание вложений в посылках',
-                                      reply_markup=buttons, state=state)
-    await state.update_data(data)
-    buttons = None  # TODO: create new keyboard
-    await callback.message.answer('Введите ',
-                                  reply_markup=buttons, state=state)
-
+# @router.callback_query(F.data == 'description')
+# async def description_callback(callback: types.CallbackQuery, state: FSMContext):
+#     state_data = await state.get_data()
+#     for package in range(state_data['packages']):
+#         await callback.message.answer('Введите описание вложений в посылках',
+#                                       reply_markup=buttons, state=state)
+#     await state.update_data(data)
+#     buttons = None  # TODO: create new keyboard
+#     await callback.message.answer('Введите ',
+#                                   reply_markup=buttons, state=state)
+#
 
 # @router.callback_query(F.data == 'sizes')
 # async def sizes_callback(callback: types.CallbackQuery, state: FSMContext):
