@@ -99,7 +99,7 @@ async def user_password_chosen(message: Message, state: FSMContext):
     for user in user_accounts_creds:
         if chosen_contract_number == user.contract_number and chosen_password == user.password:
             TgUserAccount.create(tg_id=message.from_user.id, tg_username=message.from_user.username,
-                                 user_id=user.id, manager_id=free_manager.id)
+                                 user_id=user.id, manager_id=free_manager)
             await message.answer(
                 text=f"Ваш аккаунт связан с ([contract:{chosen_contract_number}]:[password:{chosen_password}])"
             )
