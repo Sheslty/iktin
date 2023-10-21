@@ -1,5 +1,5 @@
 from dbcontroller.models import (
-    Orders, Managers, TgUserAccounts, UserAccounts, TgPretensions
+    Order, Manager, TgUserAccount, UserAccount, TgPretension, TgManager
 )
 
 
@@ -25,17 +25,14 @@ class DbObjectsFactory:
     def create_manager(self, **kwargs) -> Manager:
         return self.manager.create(**kwargs)
 
+    def create_tg_manager(self, **kwargs) -> TgManager:
+        return self.tg_manager.create(**kwargs)
+
     def create_tg_user_account(self, **kwargs) -> TgUserAccount:
         return self.tg_user_account.create(**kwargs)
 
     def create_user_account(self, **kwargs) -> UserAccount:
         return self.user_account.create(**kwargs)
 
-    def create_pretension(self, **kwargs) -> TgPretension:
-        return self.pretension.create(**kwargs)
-
-
-if __name__ == '__main__':
-    c = DbObjectsFactory()
-    c.init()
-    c.create_tg_user_account(tg_id=300438464, tg_username='qwe', password='qwe', account_id=2, manager_id=2)
+    def create_tg_pretension(self, **kwargs) -> TgPretension:
+        return self.tg_pretension.create(**kwargs)
