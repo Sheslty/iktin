@@ -6,10 +6,10 @@ from aiogram.filters.state import State, StatesGroup
 from datetime import datetime
 
 from bot.messages import BotButtons
-from datatypes import Package, Item, PretensionStatus
+from datatypes import Package, PretensionStatus
 from dbcontroller.models import TgPretension
 import bot.keyboards as keyboards
-from keyboards import PretensionCallbacks
+from bot.keyboards import PretensionCallbacks
 
 router = Router()
 
@@ -58,15 +58,22 @@ async def pretension_info_chosen(message: Message, state: FSMContext):
 
 
 # --- Start Invoice create section
+class InvoiceStates(StatesGroup):
+    waiting_for_packages_number = State()
+    waiting_for_description = State()
+    waiting_for_cost = State()
+    waiting_for_package_sizes = State()
+
+
 @router.message(F.text == BotButtons.CREATE_INVOICE)
 async def process_create_invoice(message: Message, state: FSMContext):
     keyboard = keyboards.delivery_type_choose
-    await message.answer("Выберите режим отправки", reply_markup=keyboard, state=state)
+    await message.answer("Выберите режим отправки", reply_markup=keyboard,
+                         state=state)
 
 
 @router.callback_query(F.data.startswith('deliver'))
-async def delivery_type_callback(callback: types.CallbackQuery,
-                                 state: FSMContext):
+async def delivery_type(callback: types.CallbackQuery, state: FSMContext):
     data = {'delivery_type': None}
     if 'door_door' in callback.data:
         data['delivery_type'] = 'дверь-дверь'
@@ -77,48 +84,47 @@ async def delivery_type_callback(callback: types.CallbackQuery,
     elif 'warehouse_warehouse' in callback.data:
         data['delivery_type'] = 'склад-склад'
     await state.update_data(data)
-    buttons = None  # TODO: create new keyboard
+    await state.set_state(InvoiceStates.waiting_for_packages_number)
     await callback.message.answer('Укажите количество посылок',
-                                  reply_markup=buttons, state=state)
+                                  reply_markup=types.ForceReply())
 
 
-@router.callback_query(F.data == 'packages_number')
-async def packages_number_callback(callback: types.CallbackQuery,
-                                 state: FSMContext):
+@router.message(InvoiceStates.waiting_for_packages_number)
+async def packages_number(message: Message, state: FSMContext):
     try:
-        packages_number = int(callback.message.text)
-        packages = [Package(None, []) for _ in range(packages_number)]
+        packages = [Package(None) for _ in range(int(message.text))]
         data = {'packages': packages}
         await state.update_data(data)
-        buttons = None  # TODO: create new keyboard
-        await callback.message.answer('Введите описание вложений в посылках',
-                                      reply_markup=buttons, state=state)
+        await state.set_state(InvoiceStates.waiting_for_description)
+        await message.answer('Введите описание содержание посылок',
+                             state=state)
     except ValueError:
-        await callback.message.answer('Количество посылок должно быть числом',
-                                      state=state)
+        await state.set_state(InvoiceStates.waiting_for_packages_number)
+        await message.answer('Количество посылок должно быть числом',
+                             state=state)
 
 
-# @router.callback_query(F.data == 'description')
-# async def description_callback(callback: types.CallbackQuery, state: FSMContext):
-#     state_data = await state.get_data()
-#     for package in range(state_data['packages']):
-#         await callback.message.answer('Введите описание вложений в посылках',
-#                                       reply_markup=buttons, state=state)
-#     await state.update_data(data)
-#     buttons = None  # TODO: create new keyboard
-#     await callback.message.answer('Введите ',
-#                                   reply_markup=buttons, state=state)
-#
+@router.message(InvoiceStates.waiting_for_description)
+async def description(message: Message, state: FSMContext):
+    state_data = await state.get_data()
+    for i in range(len(state_data['packages'])):
+        state_data['packages'][i].description = message.text
+    await state.set_state(InvoiceStates.waiting_for_package_sizes)
+    await message.answer('Введите данные о каждой посылки в формате '
+                         '"длина-ширина-высота-вес|..."', state=state)
 
-# @router.callback_query(F.data == 'sizes')
-# async def sizes_callback(callback: types.CallbackQuery, state: FSMContext):
-#     data = {'description': str(callback.message.text)}
-#     await state.update_data(data)
-#     buttons = None  # TODO: create new keyboard
-#     for place in state:
-#
-#     await callback.message.answer('Введите габариты вложений',
-#                                   reply_markup=buttons, state=state)
+
+@router.message(InvoiceStates.waiting_for_package_sizes)
+async def package_sizes(message: Message, state: FSMContext):
+    state_data = await state.get_data()
+    sizes = message.text.split('|')
+    for i in range(len(state_data['packages'])):
+        tmp = sizes[i].split('-')
+        state_data['packages'][i].length = tmp[0]
+        state_data['packages'][i].width = tmp[1]
+        state_data['packages'][i].height = tmp[2]
+        state_data['packages'][i].weight = tmp[3]
+    await state.set_state(InvoiceStates.waiting_for_cost)
 # --- End Invoice create section
 
 # TODO: отслеживание заказа
