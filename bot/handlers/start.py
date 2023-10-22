@@ -40,7 +40,7 @@ async def cmd_start(message: Message):
         manager_buttons = [
             [
                 KeyboardButton(text=BotButtons.GET_USERS_FOR_MANAGER),
-                KeyboardButton(text=BotButtons.PROCESSING_PRETENSIONS),
+                KeyboardButton(text=BotButtons.PRETENSIONS_PROCESSING),
             ]
         ]
         keyboard.extend(manager_buttons)
