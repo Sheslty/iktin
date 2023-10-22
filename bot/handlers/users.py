@@ -10,7 +10,7 @@ from aiogram import Bot
 
 from bot.messages import BotButtons
 from datatypes import Package, PretensionStatus
-from dbcontroller.models import TgPretension, TgUserAccount, Order
+from dbcontroller.models import TgPretension, TgUserAccount, Order, TgManager
 import bot.keyboards as keyboards
 from bot.keyboards import PretensionCallbacks
 
@@ -169,8 +169,8 @@ class OrderCallbackFactory(CallbackData, prefix='orders'):
     longitude: Optional[float] = None
     latitude: Optional[float] = None
 
-# TODO: отслеживание заказа
-@router.message(F.text == BotButtons.PRETENSION_CREATE)
+
+@router.message(F.text == BotButtons.CARGO_TRACKING)
 async def process_cargo_tracking(message: Message, state: FSMContext):
     user_id = TgUserAccount.get(tg_id=message.from_user.id).user_id
     order_list = Order.select().where(Order.user_id == user_id)
@@ -206,5 +206,8 @@ async def callback_location_order(
 
 
 @router.message(F.text == BotButtons.START_CHAT_MANAGER)
-async def calling_the_administration(message: Message):
-    await message.answer(f"Связываем вас с администратором ДОДЕЛАТЬ")
+async def calling_the_manager(message: Message):
+    query = (TgUserAccount.select(TgUserAccount.manager_id).where(TgUserAccount.tg_id == message.from_user.id))
+    manager = TgManager.get_by_id(query)
+    await message.answer(f"Связываем вас с администратором @{manager.tg_username}")
+
