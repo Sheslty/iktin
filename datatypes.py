@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 from typing import Union
 
-
 @dataclass
 class SessionData:
     session_username: str

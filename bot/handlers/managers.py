@@ -10,6 +10,7 @@ def beautiful_list(el: str):
     return "• @" + el
 
 
+
 @router.message(F.text == BotButtons.GET_USERS_FOR_MANAGER)
 async def process_get_users_for_manager(message: Message):
     _id = (TgManager.select(TgManager.id).where(TgManager.tg_id == message.from_user.id))[0]
@@ -20,4 +21,5 @@ async def process_get_users_for_manager(message: Message):
     else:
         answer = '\n'.join(list(map(beautiful_list, usernames)))
     await message.answer(answer, parse_mode="MarkdownV2")
+
 

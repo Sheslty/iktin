@@ -24,12 +24,13 @@ router = Router()
 class PretensionCreateForm(StatesGroup):
     waiting_for_pretension_info = State()
 
+    
 @router.message(F.text == BotButtons.PRETENSION_CREATE)
 async def process_pretension_create(message: Message):
     keyboard = keyboards.pretension_type_choose
     await message.answer("Выберите причину претензии", reply_markup=keyboard)
 
-
+    
 @router.callback_query(F.data.startswith('pretension_'))
 async def pretension_type_choose(callback: types.CallbackQuery, state: FSMContext):
     pretension_type = None
@@ -69,7 +70,6 @@ class InvoiceStates(StatesGroup):
     waiting_for_common_cost = State()
     waiting_for_package_cost = State()
     waiting_for_package_sizes = State()
-
 
 @router.message(F.text == BotButtons.CREATE_INVOICE)
 async def process_create_invoice(message: Message, state: FSMContext):
@@ -192,7 +192,6 @@ async def way_of_payment(callback: types.CallbackQuery, state: FSMContext):
     await state.clear()
 
 # --- End Invoice create section
-
 
 class OrderCallbackFactory(CallbackData, prefix='orders'):
     name: str
