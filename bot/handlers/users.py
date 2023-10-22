@@ -118,7 +118,7 @@ async def description(message: Message, state: FSMContext):
             state_data['packages'][i].description = message.text
         await state.set_state(InvoiceStates.waiting_for_package_sizes)
         await message.answer('Введите данные о каждой посылки в формате '
-                             '"длина-ширина-высота-вес|..."', state=state)
+                             '" длина-ширина-высота-вес|...|... "', state=state)
     except Exception as ex:
         await message.answer("Введённые данные некорректны")
         await state.clear()
@@ -149,7 +149,7 @@ async def common_cost(message: Message, state: FSMContext):
         await state.update_data({'common_cost': cost})
         await state.set_state(InvoiceStates.waiting_for_package_cost)
         await message.answer('Введите стоимость каждой посылки в формате '
-                             'стоимость|..."', state=state)
+                             'стоимость ...|...|... "', state=state)
 
     except Exception as ex:
         await message.answer("Введённые данные некорректны")
@@ -175,9 +175,19 @@ async def way_of_payment(callback: types.CallbackQuery, state: FSMContext):
     if "payment_contract" in callback.data:
         way_of_payment = "Оплата по договору"
 
+    delivery_type = state_data['delivery_type']
+    message = f"Тип доставки: {delivery_type}\n"
+    message += f"Тип оплаты: {way_of_payment}\n"
     common_cost = state_data['common_cost']
     packages = state_data['packages']
-    message = str(packages) + f"Общая цена {common_cost}"
+
+    for package in packages:
+        message += f"Описание {package.description} |"
+        size = f"Длина:{package.length} | Ширина:{package.width} | Высота:{package.height} | Вес:{package.weight}" + ' | '
+        message += size + f"Цена: {package.cost} \n"
+
+    message += f"Общая цена {common_cost}"
+
     await callback.message.answer(message)
     await state.clear()
 
