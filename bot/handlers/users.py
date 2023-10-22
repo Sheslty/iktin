@@ -2,17 +2,18 @@ from aiogram import Router, F, types
 from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
 from aiogram.filters.state import State, StatesGroup
-
+from datetime import datetime
+from aiogram.filters.callback_data import CallbackData
+from aiogram_inline_paginations.paginator import Paginator
+from aiogram.utils.keyboard import InlineKeyboardBuilder
+from aiogram import Bot
 
 from bot.messages import BotButtons
-from datatypes import Package, Item, PretensionStatus
+from datatypes import Package, PretensionStatus
 from dbcontroller.models import TgPretension, TgUserAccount, Order
 import bot.keyboards as keyboards
 from bot.keyboards import PretensionCallbacks
-from aiogram_inline_paginations.paginator import Paginator
-from aiogram.utils.keyboard import InlineKeyboardBuilder
-from aiogram.filters.callback_data import CallbackData
-from aiogram import Bot
+
 from typing import Optional
 
 
@@ -160,13 +161,16 @@ async def way_of_payment(message: Message, state: FSMContext):
     await state.set_state(InvoiceStates.waiting_for_package_cost)
     await message.answer('Введите стоимость каждой посылки в формате '
                          'стоимость|..."', state=state)
-
 # --- End Invoice create section
 
 
+class OrderCallbackFactory(CallbackData, prefix='orders'):
+    name: str
+    longitude: Optional[float] = None
+    latitude: Optional[float] = None
+
 # TODO: отслеживание заказа
 @router.message(F.text == BotButtons.PRETENSION_CREATE)
-
 async def process_cargo_tracking(message: Message, state: FSMContext):
     user_id = TgUserAccount.get(tg_id=message.from_user.id).user_id
     order_list = Order.select().where(Order.user_id == user_id)
