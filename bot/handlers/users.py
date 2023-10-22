@@ -3,13 +3,18 @@ from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
 from aiogram.filters.state import State, StatesGroup
 
-from datetime import datetime
 
 from bot.messages import BotButtons
-from datatypes import Package, PretensionStatus
-from dbcontroller.models import TgPretension
+from datatypes import Package, Item, PretensionStatus
+from dbcontroller.models import TgPretension, TgUserAccount, Order
 import bot.keyboards as keyboards
 from bot.keyboards import PretensionCallbacks
+from aiogram_inline_paginations.paginator import Paginator
+from aiogram.utils.keyboard import InlineKeyboardBuilder
+from aiogram.filters.callback_data import CallbackData
+from aiogram import Bot
+from typing import Optional
+
 
 router = Router()
 
@@ -17,7 +22,6 @@ router = Router()
 # --- Start Consignment create section
 class PretensionCreateForm(StatesGroup):
     waiting_for_pretension_info = State()
-
 
 @router.message(F.text == BotButtons.PRETENSION_CREATE)
 async def process_pretension_create(message: Message):
@@ -162,5 +166,41 @@ async def way_of_payment(message: Message, state: FSMContext):
 
 # TODO: отслеживание заказа
 @router.message(F.text == BotButtons.PRETENSION_CREATE)
+
 async def process_cargo_tracking(message: Message, state: FSMContext):
-    await message.reply(f"")
+    user_id = TgUserAccount.get(tg_id=message.from_user.id).user_id
+    order_list = Order.select().where(Order.user_id == user_id)
+    builder = InlineKeyboardBuilder()
+
+    for el in order_list:
+        builder.button(text=f"№{el.id}, '{el.name[:20]}'",
+                       callback_data=OrderCallbackFactory(name=el.name[:15],
+                                                          longitude=el.longitude,
+                                                          latitude=el.latitude))
+
+    builder.adjust(1)
+    paginator = Paginator(data=builder.as_markup(), size=5, dp=router)
+
+    await message.answer(
+        text='Выберете заказ:',
+        reply_markup=paginator()
+    )
+
+
+@router.callback_query(OrderCallbackFactory.filter())
+async def callback_location_order(
+        callback: types.CallbackQuery,
+        callback_data: OrderCallbackFactory,
+        bot: Bot
+):
+    if callback_data.longitude is None or callback_data.latitude is None:
+        return await callback.message.answer(f"У данного товара не указана локация")
+    await bot.send_location(callback.message.chat.id,
+                            longitude=callback_data.longitude,
+                            latitude=callback_data.latitude)
+    await callback.message.delete()
+
+
+@router.message(F.text == BotButtons.START_CHAT_MANAGER)
+async def calling_the_administration(message: Message):
+    await message.answer(f"Связываем вас с администратором ДОДЕЛАТЬ")

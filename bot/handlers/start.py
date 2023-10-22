@@ -6,7 +6,7 @@ from aiogram.types import Message, KeyboardButton, ReplyKeyboardMarkup
 from aiogram.fsm.context import FSMContext
 from aiogram.filters.state import State, StatesGroup
 
-from peewee import fn
+from peewee import fn, JOIN
 from bot.messages import BotButtons
 from dbcontroller.models import TgUserAccount, TgManager, UserAccount, Manager
 
@@ -28,7 +28,8 @@ async def cmd_start(message: Message):
             [
                 KeyboardButton(text=BotButtons.PRETENSION_CREATE),
                 KeyboardButton(text=BotButtons.CARGO_TRACKING),
-                KeyboardButton(text=BotButtons.CREATE_INVOICE)
+                KeyboardButton(text=BotButtons.CREATE_INVOICE),
+                KeyboardButton(text=BotButtons.START_CHAT_MANAGER)
             ]
         ]
         keyboard.extend(user_buttons)
@@ -37,7 +38,10 @@ async def cmd_start(message: Message):
     existing_manager_ids = [manager.tg_id for manager in existing_managers]
     if message.from_user.id in existing_manager_ids:
         manager_buttons = [
-            [KeyboardButton(text=BotButtons.GET_USERS_FOR_MANAGER)]
+            [
+                KeyboardButton(text=BotButtons.GET_USERS_FOR_MANAGER),
+                KeyboardButton(text=BotButtons.PROCESSING_PRETENSIONS),
+            ]
         ]
         keyboard.extend(manager_buttons)
 
@@ -69,17 +73,18 @@ async def contract_number_chosen(message: Message, state: FSMContext):
     await state.set_state(UserAuthorisationForm.waiting_for_password)
 
 
-# def __get_free_manager():
-#     query = (TgUserAccount
-#              .select(TgUserAccount.manager_id)
-#              .group_by(TgUserAccount.manager_id)
-#              .order_by(fn.COUNT(TgUserAccount.id)))
-#     free_managers = [manager for manager in query]
-#
-#     if len(free_managers):
-#         return free_managers[0]
-#
-#     return TgManager.select(TgManager.id).limit(1)
+def __get_free_manager():
+    query = (TgManager
+             .select(TgManager.id)
+             .join(TgUserAccount, JOIN.LEFT_OUTER)
+             .group_by(TgUserAccount.manager_id)
+             .order_by(fn.COUNT(TgUserAccount.id)))
+    free_managers = [manager for manager in query]
+
+    if len(free_managers):
+        return free_managers[0]
+
+    return TgManager.select(TgManager.id).limit(1)
 
 
 @router.message(UserAuthorisationForm.waiting_for_password)
@@ -93,11 +98,12 @@ async def user_password_chosen(message: Message, state: FSMContext):
         await state.clear()
         return
 
-    # free_manager = __get_free_manager()
+    free_manager = __get_free_manager()
     user_accounts_creds = UserAccount.select()
     for user in user_accounts_creds:
         if chosen_contract_number == user.contract_number and chosen_password == user.password:
-            TgUserAccount.create(tg_id=message.from_user.id, tg_username=message.from_user.username, user_id=user.id)
+            TgUserAccount.create(tg_id=message.from_user.id, tg_username=message.from_user.username,
+                                 user_id=user.id, manager_id=free_manager)
             await message.answer(
                 text=f"Ваш аккаунт связан с ([contract:{chosen_contract_number}]:[password:{chosen_password}])"
             )

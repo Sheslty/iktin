@@ -4,7 +4,7 @@ from json import load
 
 from peewee import (
     SqliteDatabase, Model, CharField, IntegerField,
-    ForeignKeyField, DateTimeField
+    ForeignKeyField, DateTimeField, FloatField
 )
 
 
@@ -41,6 +41,8 @@ class Order(Model):
     name = CharField(null=False)
     info = CharField()
     user_id = ForeignKeyField(UserAccount, on_delete='CASCADE')
+    longitude = FloatField(null=True)
+    latitude = FloatField(null=True)
 
     class Meta:
         database = db
