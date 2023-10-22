@@ -11,7 +11,7 @@ from bot.keyboards import PretensionCallbacks
 from aiogram_inline_paginations.paginator import Paginator
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.filters.callback_data import CallbackData
-
+from aiogram import Bot
 
 router = Router()
 
@@ -103,9 +103,10 @@ async def packages_number_callback(callback: types.CallbackQuery,
 
 class OrderCallbackFactory(CallbackData, prefix='orders'):
     name: str
+    longitude: float
+    latitude: float
 
 
-# TODO: отслеживание заказа
 @router.message(F.text == BotButtons.CARGO_TRACKING)
 async def process_cargo_tracking(message: Message, state: FSMContext):
     user_id = TgUserAccount.get(tg_id=message.from_user.id).user_id
@@ -114,7 +115,9 @@ async def process_cargo_tracking(message: Message, state: FSMContext):
 
     for el in order_list:
         builder.button(text=f"№{el.id}, '{el.name[:20]}'",
-                       callback_data=OrderCallbackFactory(name=el.name[:20]))
+                       callback_data=OrderCallbackFactory(name=el.name[:15],
+                                                          longitude=float(23.142112),
+                                                          latitude=float(67.123124)))
 
     builder.adjust(1)
     paginator = Paginator(data=builder.as_markup(), size=5, dp=router)
@@ -123,3 +126,17 @@ async def process_cargo_tracking(message: Message, state: FSMContext):
         text='Выберете заказ:',
         reply_markup=paginator()
     )
+
+
+@router.callback_query(OrderCallbackFactory.filter())
+async def callback_location_order(
+        callback: types.CallbackQuery,
+        callback_data: OrderCallbackFactory,
+        bot: Bot
+):
+    await bot.send_location(callback.message.chat.id,
+                            longitude=callback_data.longitude,
+                            latitude=callback_data.latitude)
+
+    await callback.message.edit_text(f"Место положение:")
+    await callback.message.delete_reply_markup()
