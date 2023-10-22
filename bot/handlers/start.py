@@ -28,7 +28,8 @@ async def cmd_start(message: Message):
             [
                 KeyboardButton(text=BotButtons.PRETENSION_CREATE),
                 KeyboardButton(text=BotButtons.CARGO_TRACKING),
-                KeyboardButton(text=BotButtons.CREATE_INVOICE)
+                KeyboardButton(text=BotButtons.CREATE_INVOICE),
+                KeyboardButton(text=BotButtons.START_CHAT_MANAGER)
             ]
         ]
         keyboard.extend(user_buttons)
@@ -37,7 +38,10 @@ async def cmd_start(message: Message):
     existing_manager_ids = [manager.tg_id for manager in existing_managers]
     if message.from_user.id in existing_manager_ids:
         manager_buttons = [
-            [KeyboardButton(text=BotButtons.GET_USERS_FOR_MANAGER)]
+            [
+                KeyboardButton(text=BotButtons.GET_USERS_FOR_MANAGER),
+                KeyboardButton(text=BotButtons.PROCESSING_PRETENSIONS),
+            ]
         ]
         keyboard.extend(manager_buttons)
 

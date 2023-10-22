@@ -141,3 +141,8 @@ async def callback_location_order(
                             longitude=callback_data.longitude,
                             latitude=callback_data.latitude)
     await callback.message.delete()
+
+
+@router.message(F.text == BotButtons.START_CHAT_MANAGER)
+async def calling_the_administration(message: Message):
+    await message.answer(f"Связываем вас с администратором ДОДЕЛАТЬ")
