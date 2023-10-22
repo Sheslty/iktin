@@ -59,6 +59,7 @@ async def pretension_info_chosen(message: Message, state: FSMContext):
     )
 
     await message.answer("Ваша претензия записана и в ближайшее время будет рассмотрена менеджером.")
+    await state.clear()
 # --- End Consignment create section
 
 
@@ -112,35 +113,48 @@ async def packages_number(message: Message, state: FSMContext):
 
 @router.message(InvoiceStates.waiting_for_description)
 async def description(message: Message, state: FSMContext):
-    state_data = await state.get_data()
-    for i in range(len(state_data['packages'])):
-        state_data['packages'][i].description = message.text
-    await state.set_state(InvoiceStates.waiting_for_package_sizes)
-    await message.answer('Введите данные о каждой посылки в формате '
-                         '"длина-ширина-высота-вес|..."', state=state)
+    try:
+        state_data = await state.get_data()
+        for i in range(len(state_data['packages'])):
+            state_data['packages'][i].description = message.text
+        await state.set_state(InvoiceStates.waiting_for_package_sizes)
+        await message.answer('Введите данные о каждой посылки в формате '
+                             '"длина-ширина-высота-вес|..."', state=state)
+    except Exception as ex:
+        await message.answer("Введённые данные некорректны")
+        await state.clear()
 
 
 @router.message(InvoiceStates.waiting_for_package_sizes)
 async def package_sizes(message: Message, state: FSMContext):
-    state_data = await state.get_data()
-    sizes = message.text.split('|')
-    for i in range(len(state_data['packages'])):
-        tmp = list(map(int, sizes[i].split('-')))
-        state_data['packages'][i].length = tmp[0]
-        state_data['packages'][i].width = tmp[1]
-        state_data['packages'][i].height = tmp[2]
-        state_data['packages'][i].weight = tmp[3]
-    await state.set_state(InvoiceStates.waiting_for_common_cost)
-    await message.answer('Введите общую стоимость', state=state)
+    try:
+        state_data = await state.get_data()
+        sizes = message.text.split('|')
+        for i in range(len(state_data['packages'])):
+            tmp = list(map(int, sizes[i].split('-')))
+            state_data['packages'][i].length = tmp[0]
+            state_data['packages'][i].width = tmp[1]
+            state_data['packages'][i].height = tmp[2]
+            state_data['packages'][i].weight = tmp[3]
+        await state.set_state(InvoiceStates.waiting_for_common_cost)
+        await message.answer('Введите общую стоимость', state=state)
 
+    except Exception as ex:
+        await message.answer("Введённые данные некорректны")
+        await state.clear()
 
 @router.message(InvoiceStates.waiting_for_common_cost)
 async def common_cost(message: Message, state: FSMContext):
-    cost = int(message.text)
-    await state.update_data({'common_cost': cost})
-    await state.set_state(InvoiceStates.waiting_for_package_cost)
-    await message.answer('Введите стоимость каждой посылки в формате '
-                         'стоимость|..."', state=state)
+    try:
+        cost = int(message.text)
+        await state.update_data({'common_cost': cost})
+        await state.set_state(InvoiceStates.waiting_for_package_cost)
+        await message.answer('Введите стоимость каждой посылки в формате '
+                             'стоимость|..."', state=state)
+
+    except Exception as ex:
+        await message.answer("Введённые данные некорректны")
+        await state.clear()
 
 
 @router.message(InvoiceStates.waiting_for_package_cost)
@@ -150,17 +164,24 @@ async def common_cost(message: Message, state: FSMContext):
     for i in range(len(state_data['packages'])):
         state_data['packages'][i].cost = sizes[i]
     # TODO: keyboard payment
-    keyboard = None
+    keyboard = keyboards.payment_type_choose
     await message.answer("Выберите способ оплаты", reply_markup=keyboard,
                          state=state)
 
 
 @router.callback_query(F.data.startswith('payment'))
-async def way_of_payment(message: Message, state: FSMContext):
-    await state.update_data({'way_of_payment': cost})
-    await state.set_state(InvoiceStates.waiting_for_package_cost)
-    await message.answer('Введите стоимость каждой посылки в формате '
-                         'стоимость|..."', state=state)
+async def way_of_payment(callback: types.CallbackQuery, state: FSMContext):
+    state_data = await state.get_data()
+    way_of_payment = "Оплата получателем"
+    if "payment_contract" in callback.data:
+        way_of_payment = "Оплата по договору"
+
+    common_cost = state_data['common_cost']
+    packages = state_data['packages']
+    message = str(packages) + f"Общая цена {common_cost}"
+    await callback.message.answer(message)
+    await state.clear()
+
 # --- End Invoice create section
 
 
@@ -168,6 +189,7 @@ class OrderCallbackFactory(CallbackData, prefix='orders'):
     name: str
     longitude: Optional[float] = None
     latitude: Optional[float] = None
+
 
 # TODO: отслеживание заказа
 @router.message(F.text == BotButtons.PRETENSION_CREATE)
