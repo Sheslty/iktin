@@ -22,3 +22,4 @@ class Package:
     length: int = 0
     height: int = 0
     weight: int = 0
+    cost: int = 0

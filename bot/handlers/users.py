@@ -61,7 +61,8 @@ async def pretension_info_chosen(message: Message, state: FSMContext):
 class InvoiceStates(StatesGroup):
     waiting_for_packages_number = State()
     waiting_for_description = State()
-    waiting_for_cost = State()
+    waiting_for_common_cost = State()
+    waiting_for_package_cost = State()
     waiting_for_package_sizes = State()
 
 
@@ -119,13 +120,45 @@ async def package_sizes(message: Message, state: FSMContext):
     state_data = await state.get_data()
     sizes = message.text.split('|')
     for i in range(len(state_data['packages'])):
-        tmp = sizes[i].split('-')
+        tmp = list(map(int, sizes[i].split('-')))
         state_data['packages'][i].length = tmp[0]
         state_data['packages'][i].width = tmp[1]
         state_data['packages'][i].height = tmp[2]
         state_data['packages'][i].weight = tmp[3]
-    await state.set_state(InvoiceStates.waiting_for_cost)
+    await state.set_state(InvoiceStates.waiting_for_common_cost)
+    await message.answer('Введите общую стоимость', state=state)
+
+
+@router.message(InvoiceStates.waiting_for_common_cost)
+async def common_cost(message: Message, state: FSMContext):
+    cost = int(message.text)
+    await state.update_data({'common_cost': cost})
+    await state.set_state(InvoiceStates.waiting_for_package_cost)
+    await message.answer('Введите стоимость каждой посылки в формате '
+                         'стоимость|..."', state=state)
+
+
+@router.message(InvoiceStates.waiting_for_package_cost)
+async def common_cost(message: Message, state: FSMContext):
+    state_data = await state.get_data()
+    sizes = list(map(int, message.text.split('|')))
+    for i in range(len(state_data['packages'])):
+        state_data['packages'][i].cost = sizes[i]
+    # TODO: keyboard payment
+    keyboard = None
+    await message.answer("Выберите способ оплаты", reply_markup=keyboard,
+                         state=state)
+
+
+@router.callback_query(F.data.startswith('payment'))
+async def way_of_payment(message: Message, state: FSMContext):
+    await state.update_data({'way_of_payment': cost})
+    await state.set_state(InvoiceStates.waiting_for_package_cost)
+    await message.answer('Введите стоимость каждой посылки в формате '
+                         'стоимость|..."', state=state)
+
 # --- End Invoice create section
+
 
 # TODO: отслеживание заказа
 @router.message(F.text == BotButtons.PRETENSION_CREATE)
