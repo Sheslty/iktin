@@ -1,7 +1,8 @@
 from aiogram import Router, F, types
 from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
-import bot.keyboards as keyboards
+from aiogram.filters.state import State, StatesGroup
+
 
 from bot.messages import BotButtons
 from datatypes import Package, Item, PretensionStatus
@@ -14,13 +15,59 @@ from aiogram.filters.callback_data import CallbackData
 from aiogram import Bot
 from typing import Optional
 
+
 router = Router()
 
+
+# --- Start Consignment create section
+class PretensionCreateForm(StatesGroup):
+    waiting_for_pretension_info = State()
 
 @router.message(F.text == BotButtons.PRETENSION_CREATE)
 async def process_pretension_create(message: Message):
     keyboard = keyboards.pretension_type_choose
     await message.answer("Выберите причину претензии", reply_markup=keyboard)
+
+
+@router.callback_query(F.data.startswith('pretension_'))
+async def pretension_type_choose(callback: types.CallbackQuery, state: FSMContext):
+    pretension_type = None
+    if PretensionCallbacks.PRETENSION_TERM in callback.data:
+        pretension_type = "Нарушение сроков доставки"
+    elif PretensionCallbacks.PRETENSION_BROKE_ITEM in callback.data:
+        pretension_type = "Порча вложения"
+    elif PretensionCallbacks.PRETENSION_LOST_ITEM in callback.data:
+        pretension_type = "Утеря вложения"
+    elif PretensionCallbacks.PRETENSION_BROKE_ITEM in callback.data:
+        pretension_type = "Повреждение упаковки"
+
+    await state.update_data(pretension_type=pretension_type)
+    await callback.message.answer('Опишите вашу претензию подробнее')
+    await state.set_state(PretensionCreateForm.waiting_for_pretension_info)
+
+
+@router.message(PretensionCreateForm.waiting_for_pretension_info)
+async def pretension_info_chosen(message: Message, state: FSMContext):
+    managers_data = await state.get_data()
+    pretension_type = managers_data['pretension_type']
+    pretension_message = message.text
+
+    TgPretension.create(
+        user_id=message.from_user.id, status=PretensionStatus.WAIT, _type=pretension_type,
+        message=pretension_message, creation_datetime=datetime.now()
+    )
+
+    await message.answer("Ваша претензия записана и в ближайшее время будет рассмотрена менеджером.")
+# --- End Consignment create section
+
+
+# --- Start Invoice create section
+class InvoiceStates(StatesGroup):
+    waiting_for_packages_number = State()
+    waiting_for_description = State()
+    waiting_for_common_cost = State()
+    waiting_for_package_cost = State()
+    waiting_for_package_sizes = State()
 
 
 @router.message(F.text == BotButtons.CREATE_INVOICE)
@@ -30,24 +77,8 @@ async def process_create_invoice(message: Message, state: FSMContext):
                          state=state)
 
 
-@router.callback_query(F.data.startswith('cons_term'))
-async def callbacks_num(callback: types.CallbackQuery):
-    action = callback.data.split("_")[1]
-    if action == "term":
-        await callback.message.edit_text(f"Бог поможет")
-    elif action == "broke_item":
-        await callback.message.edit_text(f"Бог поможет")
-    elif action == "lost_item":
-        await callback.message.edit_text(f"Бог поможет")
-    elif action == "broke_box":
-        await callback.message.edit_text(f"Бог поможет")
-
-    await callback.answer()
-
-
 @router.callback_query(F.data.startswith('deliver'))
-async def delivery_type_callback(callback: types.CallbackQuery,
-                                 state: FSMContext):
+async def delivery_type(callback: types.CallbackQuery, state: FSMContext):
     data = {'delivery_type': None}
     if 'door_door' in callback.data:
         data['delivery_type'] = 'дверь-дверь'
@@ -58,57 +89,84 @@ async def delivery_type_callback(callback: types.CallbackQuery,
     elif 'warehouse_warehouse' in callback.data:
         data['delivery_type'] = 'склад-склад'
     await state.update_data(data)
-    buttons = None  # TODO: create new keyboard
+    await state.set_state(InvoiceStates.waiting_for_packages_number)
     await callback.message.answer('Укажите количество посылок',
-                                  reply_markup=buttons, state=state)
+                                  reply_markup=types.ForceReply())
 
 
-@router.callback_query(F.data == 'packages_number')
-async def packages_number_callback(callback: types.CallbackQuery,
-                                   state: FSMContext):
+@router.message(InvoiceStates.waiting_for_packages_number)
+async def packages_number(message: Message, state: FSMContext):
     try:
-        packages_number = int(callback.message.text)
-        packages = [Package(None, []) for _ in range(packages_number)]
+        packages = [Package(None) for _ in range(int(message.text))]
         data = {'packages': packages}
         await state.update_data(data)
-        buttons = None  # TODO: create new keyboard
-        await callback.message.answer('Введите описание вложений в посылках',
-                                      reply_markup=buttons, state=state)
+        await state.set_state(InvoiceStates.waiting_for_description)
+        await message.answer('Введите описание содержание посылок',
+                             state=state)
     except ValueError:
-        await callback.message.answer('Количество посылок должно быть числом',
-                                      state=state)
+        await state.set_state(InvoiceStates.waiting_for_packages_number)
+        await message.answer('Количество посылок должно быть числом',
+                             state=state)
 
 
-# @router.callback_query(F.data == 'description')
-# async def description_callback(callback: types.CallbackQuery, state: FSMContext):
-#     state_data = await state.get_data()
-#     for package in range(state_data['packages']):
-#         await callback.message.answer('Введите описание вложений в посылках',
-#                                       reply_markup=buttons, state=state)
-#     await state.update_data(data)
-#     buttons = None  # TODO: create new keyboard
-#     await callback.message.answer('Введите ',
-#                                   reply_markup=buttons, state=state)
-#
+@router.message(InvoiceStates.waiting_for_description)
+async def description(message: Message, state: FSMContext):
+    state_data = await state.get_data()
+    for i in range(len(state_data['packages'])):
+        state_data['packages'][i].description = message.text
+    await state.set_state(InvoiceStates.waiting_for_package_sizes)
+    await message.answer('Введите данные о каждой посылки в формате '
+                         '"длина-ширина-высота-вес|..."', state=state)
 
-# @router.callback_query(F.data == 'sizes')
-# async def sizes_callback(callback: types.CallbackQuery, state: FSMContext):
-#     data = {'description': str(callback.message.text)}
-#     await state.update_data(data)
-#     buttons = None  # TODO: create new keyboard
-#     for place in state:
-#
-#     await callback.message.answer('Введите габариты вложений',
-#                                   reply_markup=buttons, state=state)
+
+@router.message(InvoiceStates.waiting_for_package_sizes)
+async def package_sizes(message: Message, state: FSMContext):
+    state_data = await state.get_data()
+    sizes = message.text.split('|')
+    for i in range(len(state_data['packages'])):
+        tmp = list(map(int, sizes[i].split('-')))
+        state_data['packages'][i].length = tmp[0]
+        state_data['packages'][i].width = tmp[1]
+        state_data['packages'][i].height = tmp[2]
+        state_data['packages'][i].weight = tmp[3]
+    await state.set_state(InvoiceStates.waiting_for_common_cost)
+    await message.answer('Введите общую стоимость', state=state)
+
+
+@router.message(InvoiceStates.waiting_for_common_cost)
+async def common_cost(message: Message, state: FSMContext):
+    cost = int(message.text)
+    await state.update_data({'common_cost': cost})
+    await state.set_state(InvoiceStates.waiting_for_package_cost)
+    await message.answer('Введите стоимость каждой посылки в формате '
+                         'стоимость|..."', state=state)
+
+
+@router.message(InvoiceStates.waiting_for_package_cost)
+async def common_cost(message: Message, state: FSMContext):
+    state_data = await state.get_data()
+    sizes = list(map(int, message.text.split('|')))
+    for i in range(len(state_data['packages'])):
+        state_data['packages'][i].cost = sizes[i]
+    # TODO: keyboard payment
+    keyboard = None
+    await message.answer("Выберите способ оплаты", reply_markup=keyboard,
+                         state=state)
+
+
+@router.callback_query(F.data.startswith('payment'))
+async def way_of_payment(message: Message, state: FSMContext):
+    await state.update_data({'way_of_payment': cost})
+    await state.set_state(InvoiceStates.waiting_for_package_cost)
+    await message.answer('Введите стоимость каждой посылки в формате '
+                         'стоимость|..."', state=state)
+
 # --- End Invoice create section
 
-class OrderCallbackFactory(CallbackData, prefix='orders'):
-    name: str
-    longitude: Optional[float] = None
-    latitude: Optional[float] = None
 
+# TODO: отслеживание заказа
+@router.message(F.text == BotButtons.PRETENSION_CREATE)
 
-@router.message(F.text == BotButtons.CARGO_TRACKING)
 async def process_cargo_tracking(message: Message, state: FSMContext):
     user_id = TgUserAccount.get(tg_id=message.from_user.id).user_id
     order_list = Order.select().where(Order.user_id == user_id)
