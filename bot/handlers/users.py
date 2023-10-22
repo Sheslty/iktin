@@ -12,6 +12,7 @@ from aiogram_inline_paginations.paginator import Paginator
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.filters.callback_data import CallbackData
 from aiogram import Bot
+from typing import Optional
 
 router = Router()
 
@@ -103,8 +104,8 @@ async def packages_number_callback(callback: types.CallbackQuery,
 
 class OrderCallbackFactory(CallbackData, prefix='orders'):
     name: str
-    longitude: float
-    latitude: float
+    longitude: Optional[float] = None
+    latitude: Optional[float] = None
 
 
 @router.message(F.text == BotButtons.CARGO_TRACKING)
@@ -116,8 +117,8 @@ async def process_cargo_tracking(message: Message, state: FSMContext):
     for el in order_list:
         builder.button(text=f"№{el.id}, '{el.name[:20]}'",
                        callback_data=OrderCallbackFactory(name=el.name[:15],
-                                                          longitude=float(23.142112),
-                                                          latitude=float(67.123124)))
+                                                          longitude=el.longitude,
+                                                          latitude=el.latitude))
 
     builder.adjust(1)
     paginator = Paginator(data=builder.as_markup(), size=5, dp=router)
@@ -134,9 +135,9 @@ async def callback_location_order(
         callback_data: OrderCallbackFactory,
         bot: Bot
 ):
+    if callback_data.longitude is None or callback_data.latitude is None:
+        return await callback.message.answer(f"У данного товара не указана локация")
     await bot.send_location(callback.message.chat.id,
                             longitude=callback_data.longitude,
                             latitude=callback_data.latitude)
-
-    await callback.message.edit_text(f"Место положение:")
-    await callback.message.delete_reply_markup()
+    await callback.message.delete()
