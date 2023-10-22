@@ -60,6 +60,7 @@ async def pretension_info_chosen(message: Message, state: FSMContext):
     )
 
     await message.answer("Ваша претензия записана и в ближайшее время будет рассмотрена менеджером.")
+    await state.clear()
 # --- End Consignment create section
 
 
