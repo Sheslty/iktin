@@ -15,13 +15,10 @@ class PretensionStatus:
 
 
 @dataclass
-class Item:
-    width: int
-    length: int
-    height: int
-
-
-@dataclass
 class Package:
     description: Union[str, None]
-    items: list[Item]
+    width: int = 0
+    length: int = 0
+    height: int = 0
+    weight: int = 0
+    cost: int = 0

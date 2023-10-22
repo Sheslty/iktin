@@ -40,7 +40,7 @@ async def cmd_start(message: Message):
         manager_buttons = [
             [
                 KeyboardButton(text=BotButtons.GET_USERS_FOR_MANAGER),
-                KeyboardButton(text=BotButtons.PROCESSING_PRETENSIONS),
+                KeyboardButton(text=BotButtons.PRETENSIONS_PROCESSING),
             ]
         ]
         keyboard.extend(manager_buttons)
@@ -51,6 +51,7 @@ async def cmd_start(message: Message):
         input_field_placeholder='Выберите действие.'
     )
     await message.answer("Привет👋. Я бот", reply_markup=keyboard)
+    await message.answer_sticker(r'CAACAgIAAxkBAAEBj_tlNPexPJPd_YikCBJB_PRInSb9twACJgAD6dgTKKrQDHZ0QgghMAQ')
 
 
 # -- User authorize section --
