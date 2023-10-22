@@ -7,7 +7,7 @@ router = Router()
 
 
 def beautiful_list(el: str):
-    return f"<li><a href='#'>{el}</a></li>"
+    return "• @" + el
 
 
 @router.message(F.text == BotButtons.GET_USERS_FOR_MANAGER)
@@ -18,6 +18,6 @@ async def process_get_users_for_manager(message: Message):
     if not usernames:
         answer = "У вас пока нет пользователей"
     else:
-        answer = str(usernames)
-    await message.answer(answer, parse_mode="HTML")
+        answer = '\n'.join(list(map(beautiful_list, usernames)))
+    await message.answer(answer, parse_mode="MarkdownV2")
 
